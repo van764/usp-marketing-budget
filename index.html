@@ -167,9 +167,9 @@ tr.drag-over td{border-top:2px solid var(--accent)!important}
 <body>
 <div class="app" id="app"></div>
 <script>
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // CONFIG
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const TODAY_MONTH = 2;
 let selectedMonth = TODAY_MONTH;
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -283,9 +283,9 @@ const BRANDS = [
   ]),
 ];
 
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // STATE
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 let activeBrand = 0;
 let activeView = 'budget';
 let modal = null;
@@ -332,9 +332,9 @@ function saveStorm(brandId, months) {
   saveData('storm_' + brandId, months);
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // HELPERS
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const $=(s,p)=>(p||document).querySelector(s);
 const $$=(s,p)=>[...(p||document).querySelectorAll(s)];
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
@@ -403,9 +403,9 @@ function getColor(r){
   if(r>=.95)return{bar:'#dc2626'};if(r>=.80)return{bar:'#ca8a04'};return{bar:'#16a34a'};
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // RENDER
-// ═══════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function render(){
   const brand=BRANDS[activeBrand];
   const d=compute(brand);
@@ -457,7 +457,6 @@ function renderBudgetView(brand, d, m, storm){
   const diffCls=diff>0?'comp-up':diff<0?'comp-down':'comp-flat';
   const diffTxt=diff>0?'&#9650; +'+fmt(diff)+' vs '+MONTHS[m-1]:diff<0?'&#9660; '+fmt(Math.abs(diff))+' less':'Flat';
   const monthLabel=d.isFuture?MONTHS[m]+' (Planned)':d.isCurrent?MONTHS[m]+' (Current)':MONTHS[m]+' (Closed)';
-  const spendLabel=d.isFuture?'Projected':d.isCurrent?'Spent to Date':'Final Spend';
   const sorted=[...brand.vendors].map((v,i)=>({...v,_idx:i}));
   const cats={};
   brand.vendors.forEach((v,vi)=>{if(!cats[v.category])cats[v.category]=[];cats[v.category].push({...v,_idx:vi})});
@@ -465,19 +464,19 @@ function renderBudgetView(brand, d, m, storm){
   let h='<div class="fade-in">';
   // KPIs
   h+='<div class="kpi-grid">';
-  h+='<div class="kpi"><div class="kpi-label">'+monthLabel+'</div><div class="kpi-value">'+fmt(d.budget)+'</div><div class="kpi-sub">'+(d.isFuture?'Planned budget':'Approved budget')+'</div></div>';
-  h+='<div class="kpi"><div class="kpi-label">'+spendLabel+'</div><div class="kpi-value">'+fmt(d.spent)+'</div><div class="kpi-sub">'+(m>0?'<span class="comp '+diffCls+'">'+diffTxt+'</span>':'First month')+'</div></div>';
-  h+='<div class="kpi"><div class="kpi-label">'+(d.isFuture?'Full Budget':'Remaining')+'</div><div class="kpi-value" style="color:'+(d.isFuture?'var(--accent)':sc.bar)+'">'+fmt(d.remaining)+'</div><div class="kpi-sub">'+(d.isFuture?'Not yet started':pct(1-d.ratio)+' left')+'</div></div>';
-  // Allocation KPI
-  const allocLabel = d.allocMonth > 0 ? fmt(d.allocMonth) : '<span style="font-size:14px;color:var(--muted)">Not set</span>';
-  let allocSub = 'Set in Allocation tab';
-  if(d.allocMonth > 0){
-    if(d.monthVariance > 0) allocSub = '<span style="color:var(--green);font-weight:600">'+fmt(d.monthVariance)+' under</span>';
-    else if(d.monthVariance < 0) allocSub = '<span style="color:var(--red);font-weight:600">'+fmt(Math.abs(d.monthVariance))+' over</span>';
-    else allocSub = 'On target';
-  }
-  h+='<div class="kpi" style="border-left:3px solid var(--accent)"><div class="kpi-label">'+MONTHS[m]+' Allocation</div><div class="kpi-value" style="color:var(--accent)">'+allocLabel+'</div><div class="kpi-sub">'+allocSub+'</div></div>';
-  // Trial KPI
+  // 1. Allocated (from corporate allocation tab)
+  const allocVal = d.allocMonth > 0 ? fmt(d.allocMonth) : '<span style="font-size:14px;color:var(--muted)">Not set</span>';
+  const allocSub2 = d.allocMonth > 0 ? 'Approved by corporate' : 'Set in Allocation tab';
+  h+='<div class="kpi" style="border-left:3px solid var(--accent)"><div class="kpi-label">'+MONTHS[m]+' Allocated</div><div class="kpi-value">'+allocVal+'</div><div class="kpi-sub">'+allocSub2+'</div></div>';
+  // 2. Planned (sum of active line items)
+  h+='<div class="kpi"><div class="kpi-label">Planned</div><div class="kpi-value">'+fmt(d.budget)+'</div><div class="kpi-sub">'+(m>0?'<span class="comp '+diffCls+'">'+diffTxt+'</span>':'First month')+'</div></div>';
+  // 3. Remaining (allocation - planned)
+  const hasAlloc = d.allocMonth > 0;
+  const remAmt = hasAlloc ? d.allocMonth - d.budget : d.remaining;
+  const remClr = hasAlloc ? (remAmt >= 0 ? 'var(--green)' : 'var(--red)') : sc.bar;
+  const remSub = hasAlloc ? (remAmt >= 0 ? fmt(remAmt)+' under allocation' : fmt(Math.abs(remAmt))+' over allocation') : (d.isFuture ? 'Not yet started' : pct(1-d.ratio)+' left');
+  h+='<div class="kpi"><div class="kpi-label">Remaining</div><div class="kpi-value" style="color:'+remClr+'">'+fmt(remAmt)+'</div><div class="kpi-sub">'+remSub+'</div></div>';
+  // 4. Trial Spend
   const trialCount = sorted.filter(v=>v.status==='trial').length;
   h+='<div class="kpi" style="border-left:3px solid var(--orange)"><div class="kpi-label" style="color:var(--orange)">Trial Spend &bull; '+MONTHS[m]+'</div><div class="kpi-value" style="color:var(--orange)">'+fmt(d.trialMonth)+'</div><div class="kpi-sub">'+fmt(d.trialAnnual)+' annual &bull; '+trialCount+' item'+(trialCount!==1?'s':'')+'</div></div>';
   h+='</div>';
