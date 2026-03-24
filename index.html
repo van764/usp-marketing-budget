@@ -198,12 +198,12 @@ header h1 em{font-style:normal;color:var(--accent)}
 const SUPABASE_URL = 'https://gvvrkbjhesffsvbgcfxx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dnJrYmpoZXNmZnN2YmdjZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTk5MjgsImV4cCI6MjA4OTg3NTkyOH0.SW26W8K4KHoldjbhfqjGET8Uepl5SUg1kXAHYEdklNI';
 
-let supabase = null;
+var supabaseClient = null;
 let currentUser = null;
 let userRole = 'viewer';
 
 if (SUPABASE_URL && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 const BRAND_META = [
@@ -236,7 +236,7 @@ async function handleLogin(email, password) {
     document.getElementById('loginBtn').disabled = true;
     document.getElementById('loginBtn').textContent = 'Signing in...';
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
       email,
       password
     });
@@ -256,7 +256,7 @@ async function handleLogin(email, password) {
 
 async function loadUserRole() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', currentUser.id)
@@ -272,7 +272,7 @@ async function loadUserRole() {
 
 async function handleLogout() {
   try {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     currentUser = null;
     userRole = 'viewer';
     BRANDS = [];
@@ -333,7 +333,7 @@ async function loadAllData() {
 
 async function loadLineItems() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('line_items')
       .select('*')
       .order('brand_id')
@@ -349,7 +349,7 @@ async function loadLineItems() {
 
 async function loadAllocations() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('allocations')
       .select('*');
 
@@ -365,7 +365,7 @@ async function loadAllocations() {
 
 async function loadStormConfigs() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('storm_config')
       .select('*');
 
@@ -381,7 +381,7 @@ async function loadStormConfigs() {
 
 async function loadNotes(brandId) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('notes')
       .select('*')
       .eq('brand_id', brandId)
@@ -402,7 +402,7 @@ async function loadNotes(brandId) {
 async function addNote(brandId, text) {
   if (!text.trim()) return;
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('notes')
       .insert({ brand_id: brandId, text });
 
@@ -415,7 +415,7 @@ async function addNote(brandId, text) {
 
 async function deleteNote(id) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('notes')
       .delete()
       .eq('id', id);
@@ -429,7 +429,7 @@ async function deleteNote(id) {
 
 async function saveAllocation(brandId, monthlyArr) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('allocations')
       .upsert({ brand_id: brandId, monthly: monthlyArr }, { onConflict: 'brand_id' });
 
@@ -443,7 +443,7 @@ async function saveAllocation(brandId, monthlyArr) {
 
 async function addLineItem(brandId, vendor) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('line_items')
       .insert({
         brand_id: brandId,
@@ -467,7 +467,7 @@ async function addLineItem(brandId, vendor) {
 
 async function updateLineItem(brandId, id, vendor) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('line_items')
       .update({
         vendor: vendor.vendor,
@@ -490,7 +490,7 @@ async function updateLineItem(brandId, id, vendor) {
 
 async function deleteLineItem(id) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('line_items')
       .delete()
       .eq('id', id);
@@ -503,10 +503,10 @@ async function deleteLineItem(id) {
 }
 
 function setupRealtimeSubscriptions() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   try {
-    supabase.channel('db-changes')
+    supabaseClient.channel('db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'line_items' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'allocations' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, () => loadAllData())
@@ -1025,14 +1025,14 @@ window.deleteNoteById = deleteNoteById;
 window.saveAllocationData = saveAllocationData;
 
 async function init() {
-  if (!supabase) {
+  if (!supabaseClient) {
     document.getElementById('loginError').innerHTML = 'Supabase is not configured. Please update the credentials.';
     document.getElementById('loginError').style.display = 'block';
     return;
   }
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (user) {
       currentUser = user;
       await loadUserRole();
