@@ -14,33 +14,13 @@
   --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
-.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
-.login-card{background:var(--card);border-radius:var(--radius);box-shadow:0 10px 40px rgba(0,0,0,.12);max-width:420px;width:100%;padding:40px}
-.login-card h1{font-size:26px;font-weight:700;margin-bottom:8px}
-.login-card .subtitle{font-size:14px;color:var(--muted);margin-bottom:28px}
-.login-form{display:flex;flex-direction:column;gap:14px}
-.login-form label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.login-form input{font-size:14px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit}
-.login-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.login-btn{background:var(--accent);color:#fff;padding:11px 16px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
-.login-btn:hover{background:#1d4ed8}
-.login-btn:disabled{opacity:.5;cursor:not-allowed}
-.login-error{background:#fee2e2;color:#dc2626;padding:10px 12px;border-radius:6px;font-size:13px;margin-bottom:14px}
-.forgot-pwd{text-align:center;margin-top:14px}
-.forgot-pwd a{font-size:12px;color:var(--accent);text-decoration:none}
-.forgot-pwd a:hover{text-decoration:underline}
-.app{max-width:1400px;margin:0 auto;padding:16px;display:none}
-.app.visible{display:block}
+.app{max-width:1400px;margin:0 auto;padding:16px}
 header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 0}
 header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
 header h1 em{font-style:normal;color:var(--accent)}
 .header-r{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-.header-r .user-info{display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid var(--border)}
-.header-r .user-email{font-weight:500;color:var(--text)}
-.header-r .role-badge{font-size:10px;padding:4px 8px;border-radius:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.role-badge.admin{background:var(--red-bg);color:var(--red)}
-.role-badge.editor{background:var(--accent-lt);color:var(--accent)}
-.role-badge.viewer{background:#f1f3f7;color:var(--muted)}
+.header-controls{display:flex;align-items:center;gap:12px}
+.header-timestamp{font-size:12px;color:var(--muted)}
 .badge{font-weight:600;font-size:12px;padding:4px 12px;border-radius:20px}
 .badge-storm{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
 .month-picker{display:flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:3px;box-shadow:var(--shadow)}
@@ -159,6 +139,7 @@ header h1 em{font-style:normal;color:var(--accent)}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--text);color:#fff;padding:12px 16px;border-radius:8px;font-size:13px;z-index:1000;animation:slideIn .3s ease;max-width:300px}
 .toast.error{background:var(--red)}
 .toast.success{background:var(--green)}
+.loading-message{text-align:center;padding:40px;font-size:14px;color:var(--muted)}
 @keyframes slideIn{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
 @media(max-width:1200px){.alloc-grid{grid-template-columns:repeat(6,1fr)}}
 @media(max-width:900px){.two-col{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.alloc-grid{grid-template-columns:repeat(4,1fr)}.alloc-summary{grid-template-columns:repeat(2,1fr)}.header-r{width:100%}}
@@ -168,43 +149,11 @@ header h1 em{font-style:normal;color:var(--accent)}
 </head>
 <body>
 
-<div class="login-screen" id="loginScreen">
-  <div class="login-card">
-    <h1><span style="color:var(--accent)">USP</span> Marketing Budget</h1>
-    <p class="subtitle">Sign in to manage branch budgets</p>
-    <div id="loginError" class="login-error" style="display:none"></div>
-    <form class="login-form" id="loginForm">
-      <div class="form-group">
-        <label for="loginEmail">Email</label>
-        <input type="email" id="loginEmail" placeholder="you@example.com" required>
-      </div>
-      <div class="form-group">
-        <label for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" placeholder="Password" required>
-      </div>
-      <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
-    </form>
-    <div class="forgot-pwd">
-      <a href="#" onclick="alert('Contact your admin to reset password'); return false;">Forgot password?</a>
-    </div>
-  </div>
-</div>
-
 <div class="app" id="app"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
-const SUPABASE_URL = 'https://gvvrkbjhesffsvbgcfxx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dnJrYmpoZXNmZnN2YmdjZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTk5MjgsImV4cCI6MjA4OTg3NTkyOH0.SW26W8K4KHoldjbhfqjGET8Uepl5SUg1kXAHYEdklNI';
-
-var supabaseClient = null;
-let currentUser = null;
-let userRole = 'viewer';
-
-if (SUPABASE_URL && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybF__hXdrO2mddniFFF-137-Ka1pc0NjRnDbEKBAw9HhxhhpM0XhJDhStJ9VW28Vaq/exec';
 
 const BRAND_META = [
   { id: 'level', name: 'Level Roofing', color: '#2563eb' },
@@ -220,6 +169,9 @@ let activeView = 'budget';
 let modal = null;
 let editingVendorIdx = null;
 let selectedMonth = 2;
+let lastUpdated = null;
+let autoRefreshInterval = null;
+
 const TODAY_MONTH = 2;
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const SIM_SPEND = {0:0.92,1:0.87};
@@ -231,290 +183,13 @@ const CAT_COLORS = {
   'OTHER':'#94a3b8','TEXT':'#f97316'
 };
 
-async function handleLogin(email, password) {
-  try {
-    document.getElementById('loginBtn').disabled = true;
-    document.getElementById('loginBtn').textContent = 'Signing in...';
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) throw error;
-
-    currentUser = data.user;
-    await loadUserRole();
-    await loadAllData();
-    showApp();
-  } catch (error) {
-    showLoginError(error.message);
-    document.getElementById('loginBtn').disabled = false;
-    document.getElementById('loginBtn').textContent = 'Sign In';
-  }
-}
-
-async function loadUserRole() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', currentUser.id)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    userRole = data?.role || 'viewer';
-  } catch (error) {
-    console.error('Error loading user role:', error);
-    userRole = 'viewer';
-  }
-}
-
-async function handleLogout() {
-  try {
-    await supabaseClient.auth.signOut();
-    currentUser = null;
-    userRole = 'viewer';
-    BRANDS = [];
-    document.getElementById('app').classList.remove('visible');
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('loginForm').reset();
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-}
-
-function showLoginError(msg) {
-  const el = document.getElementById('loginError');
-  el.textContent = msg;
-  el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 5000);
-}
-
-function showApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-}
-
-async function loadAllData() {
-  try {
-    const lineItems = await loadLineItems();
-    const allocations = await loadAllocations();
-    const stormConfigs = await loadStormConfigs();
-
-    BRANDS = BRAND_META.map(meta => {
-      const vendors = lineItems.filter(li => li.brand_id === meta.id);
-      const monthlyBudget = Array(12).fill(0);
-      vendors.filter(v => v.status !== 'unapproved').forEach(v => {
-        v.monthly.forEach((val, i) => monthlyBudget[i] += val);
-      });
-
-      const stormMonths = stormConfigs[meta.id] || [4,5,6,7,8];
-
-      return {
-        id: meta.id,
-        name: meta.name,
-        color: meta.color,
-        vendors,
-        monthlyBudget,
-        annualBudget: monthlyBudget.reduce((a,b) => a+b, 0),
-        stormMonths,
-        allocations
-      };
-    });
-
-    render();
-    setupRealtimeSubscriptions();
-  } catch (error) {
-    console.error('Error loading data:', error);
-    showToast('Error loading data: ' + error.message, 'error');
-  }
-}
-
-async function loadLineItems() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('line_items')
-      .select('*')
-      .order('brand_id')
-      .order('sort_order');
-
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error loading line items:', error);
-    return [];
-  }
-}
-
-async function loadAllocations() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('allocations')
-      .select('*');
-
-    if (error) throw error;
-    const allocs = {};
-    (data || []).forEach(a => allocs[a.brand_id] = a.monthly);
-    return allocs;
-  } catch (error) {
-    console.error('Error loading allocations:', error);
-    return {};
-  }
-}
-
-async function loadStormConfigs() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('storm_config')
-      .select('*');
-
-    if (error) throw error;
-    const storms = {};
-    (data || []).forEach(s => storms[s.brand_id] = s.months);
-    return storms;
-  } catch (error) {
-    console.error('Error loading storm configs:', error);
-    return {};
-  }
-}
-
-async function loadNotes(brandId) {
-  try {
-    const { data, error } = await supabaseClient
-      .from('notes')
-      .select('*')
-      .eq('brand_id', brandId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return (data || []).map(n => ({
-      id: n.id,
-      text: n.text,
-      ts: new Date(n.created_at).toLocaleString()
-    }));
-  } catch (error) {
-    console.error('Error loading notes:', error);
-    return [];
-  }
-}
-
-async function addNote(brandId, text) {
-  if (!text.trim()) return;
-  try {
-    const { error } = await supabaseClient
-      .from('notes')
-      .insert({ brand_id: brandId, text });
-
-    if (error) throw error;
-    await render();
-  } catch (error) {
-    showToast('Error adding note: ' + error.message, 'error');
-  }
-}
-
-async function deleteNote(id) {
-  try {
-    const { error } = await supabaseClient
-      .from('notes')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    await render();
-  } catch (error) {
-    showToast('Error deleting note: ' + error.message, 'error');
-  }
-}
-
-async function saveAllocation(brandId, monthlyArr) {
-  try {
-    const { error } = await supabaseClient
-      .from('allocations')
-      .upsert({ brand_id: brandId, monthly: monthlyArr }, { onConflict: 'brand_id' });
-
-    if (error) throw error;
-    showToast('Allocation saved', 'success');
-    await loadAllData();
-  } catch (error) {
-    showToast('Error saving allocation: ' + error.message, 'error');
-  }
-}
-
-async function addLineItem(brandId, vendor) {
-  try {
-    const { error } = await supabaseClient
-      .from('line_items')
-      .insert({
-        brand_id: brandId,
-        vendor: vendor.vendor,
-        publisher: vendor.publisher,
-        campaign: vendor.campaign,
-        category: vendor.category,
-        status: vendor.status,
-        status_note: vendor.statusNote,
-        monthly: vendor.monthly,
-        sort_order: BRANDS[activeBrand].vendors.length
-      });
-
-    if (error) throw error;
-    modal = null;
-    await loadAllData();
-  } catch (error) {
-    showToast('Error adding line item: ' + error.message, 'error');
-  }
-}
-
-async function updateLineItem(brandId, id, vendor) {
-  try {
-    const { error } = await supabaseClient
-      .from('line_items')
-      .update({
-        vendor: vendor.vendor,
-        publisher: vendor.publisher,
-        campaign: vendor.campaign,
-        category: vendor.category,
-        status: vendor.status,
-        status_note: vendor.statusNote,
-        monthly: vendor.monthly
-      })
-      .eq('id', id);
-
-    if (error) throw error;
-    modal = null;
-    await loadAllData();
-  } catch (error) {
-    showToast('Error updating line item: ' + error.message, 'error');
-  }
-}
-
-async function deleteLineItem(id) {
-  try {
-    const { error } = await supabaseClient
-      .from('line_items')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    await loadAllData();
-  } catch (error) {
-    showToast('Error deleting line item: ' + error.message, 'error');
-  }
-}
-
-function setupRealtimeSubscriptions() {
-  if (!supabaseClient) return;
-
-  try {
-    supabaseClient.channel('db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'line_items' }, () => loadAllData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'allocations' }, () => loadAllData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, () => loadAllData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'storm_config' }, () => loadAllData())
-      .subscribe();
-  } catch (error) {
-    console.error('Realtime subscription error:', error);
-  }
+function showToast(msg, type='info') {
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
+  toast.style.background = type === 'error' ? 'var(--red)' : type === 'success' ? 'var(--green)' : '#666';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }
 
 const $ = (s,p) => (p||document).querySelector(s);
@@ -577,13 +252,88 @@ function getColor(r){
   if(r>=.95)return{bar:'#dc2626'};if(r>=.80)return{bar:'#ca8a04'};return{bar:'#16a34a'};
 }
 
-function showToast(msg, type='info') {
-  const toast = document.createElement('div');
-  toast.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
-  toast.style.background = type === 'error' ? 'var(--red)' : type === 'success' ? 'var(--green)' : '#666';
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+async function fetchFromAppsScript(action, params = {}) {
+  try {
+    const payload = { action, ...params };
+    const response = await fetch(APPS_SCRIPT_URL + '?action=' + action);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching from Apps Script:', error);
+    throw error;
+  }
+}
+
+async function postToAppsScript(action, params = {}) {
+  try {
+    const payload = { action, ...params };
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error posting to Apps Script:', error);
+    throw error;
+  }
+}
+
+async function loadAllData() {
+  try {
+    const data = await fetchFromAppsScript('getAll');
+
+    const lineItems = (data.lineItems || []).map(item => ({
+      ...item,
+      monthly: [item.jan, item.feb, item.mar, item.apr, item.may, item.jun, item.jul, item.aug, item.sep, item.oct, item.nov, item.dec].map(Number)
+    }));
+
+    const allocationsData = (data.allocations || []);
+    const allocations = {};
+    allocationsData.forEach(a => {
+      allocations[a.brand_id] = [a.jan, a.feb, a.mar, a.apr, a.may, a.jun, a.jul, a.aug, a.sep, a.oct, a.nov, a.dec].map(Number);
+    });
+
+    const stormConfigs = {};
+    (data.stormConfig || []).forEach(s => {
+      stormConfigs[s.brand_id] = s.months ? s.months.split(',').map(Number) : [4,5,6,7,8];
+    });
+
+    BRANDS = BRAND_META.map(meta => {
+      const vendors = lineItems.filter(li => li.brand_id === meta.id);
+      const monthlyBudget = Array(12).fill(0);
+      vendors.filter(v => v.status !== 'unapproved').forEach(v => {
+        v.monthly.forEach((val, i) => monthlyBudget[i] += val);
+      });
+
+      const stormMonths = stormConfigs[meta.id] || [4,5,6,7,8];
+
+      return {
+        id: meta.id,
+        name: meta.name,
+        color: meta.color,
+        vendors,
+        monthlyBudget,
+        annualBudget: monthlyBudget.reduce((a,b) => a+b, 0),
+        stormMonths,
+        allocations: allocations[meta.id] || Array(12).fill(0)
+      };
+    });
+
+    lastUpdated = new Date();
+    render();
+  } catch (error) {
+    console.error('Error loading data:', error);
+    showToast('Error loading data: ' + error.message, 'error');
+  }
+}
+
+function renderLoadingScreen() {
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="loading-message">Loading dashboard...</div>';
 }
 
 async function render() {
@@ -595,7 +345,6 @@ async function render() {
   const storm = getStorm(brand);
   const isStorm = storm.includes(m);
   const notes = await loadNotes(brand.id);
-  const isReadonly = userRole === 'viewer';
 
   const app = document.getElementById('app');
   let html = '';
@@ -606,13 +355,16 @@ async function render() {
   html += '</div><div class="header-r">';
   if(isStorm) html += '<span class="badge badge-storm">⚡ Storm Season</span>';
 
-  if(currentUser) {
-    html += '<div class="user-info">';
-    html += '<span class="user-email">' + currentUser.email + '</span>';
-    html += '<span class="role-badge ' + userRole + '">' + userRole + '</span>';
-    html += '</div>';
-    html += '<button class="btn btn-outline btn-sm" onclick="logout()">Sign Out</button>';
+  html += '<div class="header-controls">';
+  if(lastUpdated) {
+    const timeStr = lastUpdated.toLocaleTimeString();
+    html += '<span class="header-timestamp">Last updated: ' + timeStr + '</span>';
   }
+  html += '<button class="btn btn-outline btn-sm" onclick="refreshData()" title="Refresh data">↻ Refresh</button>';
+  if(!BRANDS.some(b => b.vendors.length > 0)) {
+    html += '<button class="btn btn-primary btn-sm" onclick="seedData()" title="Seed with sample data">🌱 Seed Data</button>';
+  }
+  html += '</div>';
 
   html += '<div class="month-picker">';
   MONTHS.forEach((mo,i)=>{
@@ -628,25 +380,22 @@ async function render() {
   html += '<div class="view-tabs">';
   html += '<button class="view-tab '+(activeView==='budget'?'active':'')+'" data-view="budget">Budget</button>';
   html += '<button class="view-tab '+(activeView==='allocation'?'active':'')+'" data-view="allocation">Allocation</button>';
-  if(userRole === 'admin') html += '<button class="view-tab '+(activeView==='admin'?'active':'')+'" data-view="admin">Admin</button>';
   html += '</div>';
 
-  if(activeView === 'admin') {
-    html += '<div class="fade-in"><div class="card" style="background:var(--orange-bg);border-left:4px solid var(--orange)"><div class="card-title" style="color:var(--orange)">Admin Panel</div><p style="margin-top:10px;font-size:13px">User management interface coming soon. Contact Supabase to manage roles.</p></div></div>';
-  } else if(activeView === 'allocation') {
-    html += renderAllocationView(brand, d, isReadonly);
+  if(activeView === 'allocation') {
+    html += renderAllocationView(brand, d);
   } else {
-    html += renderBudgetView(brand, d, m, storm, notes, isReadonly);
+    html += renderBudgetView(brand, d, m, storm, notes);
   }
 
-  if(modal === 'addVendor') html += renderAddModal(brand, isReadonly);
-  if(modal === 'editVendor') html += renderEditModal(brand, isReadonly);
+  if(modal === 'addVendor') html += renderAddModal(brand);
+  if(modal === 'editVendor') html += renderEditModal(brand);
 
   app.innerHTML = html;
   bindAll();
 }
 
-function renderBudgetView(brand, d, m, storm, notes, isReadonly) {
+function renderBudgetView(brand, d, m, storm, notes) {
   const sc = getColor(d.ratio);
   const diff = d.spent - d.priorSpent;
   const diffCls = diff>0?'comp-up':diff<0?'comp-down':'comp-flat';
@@ -676,7 +425,7 @@ function renderBudgetView(brand, d, m, storm, notes, isReadonly) {
   h += '<div class="prog-label"><span style="color:'+(d.isFuture?'var(--muted)':sc.bar)+'">'+(d.isFuture?'0% (future)':pct(d.ratio)+' used')+'</span><span>'+(d.isFuture?fmt(d.budget)+' planned':fmt(d.spent)+' of '+fmt(d.budget))+'</span></div></div>';
 
   h += '<div class="card" style="padding:16px"><div class="card-title"><span>Budget Line Items - Full Year 2026</span>';
-  if(!isReadonly) h += '<button class="btn btn-primary btn-sm" onclick="openAddModal()" style="margin-left:auto">+ Add Line Item</button>';
+  h += '<button class="btn btn-primary btn-sm" onclick="openAddModal()" style="margin-left:auto">+ Add Line Item</button>';
   h += '</div><div class="table-wrap"><table class="vtable"><thead><tr><th style="width:30px"></th><th style="min-width:180px">Vendor / Campaign</th><th>Cat</th><th>Status</th>';
   h += '<th class="q-header" colspan="3">Q1</th><th class="q-header" colspan="3">Q2</th><th class="q-header" colspan="3">Q3</th><th class="q-header" colspan="3">Q4</th>';
   h += '<th class="num">Annual</th><th></th></tr><tr><th></th><th></th><th></th><th></th>';
@@ -694,17 +443,15 @@ function renderBudgetView(brand, d, m, storm, notes, isReadonly) {
     v.monthly.forEach((val,mi)=>{
       const cls='num'+(mi===selectedMonth?' month-current':mi<selectedMonth?' month-past':'');
       if(mi>=TODAY_MONTH){
-        h += '<td class="'+cls+'"><span class="editable '+(isReadonly?'readonly':'')+'" data-v="'+v._idx+'" data-m="'+mi+'">'+(val>0?fmt(val):'-')+'</span></td>';
+        h += '<td class="'+cls+'"><span class="editable" data-v="'+v._idx+'" data-m="'+mi+'">'+(val>0?fmt(val):'-')+'</span></td>';
       } else {
         h += '<td class="'+cls+'">'+(val>0?fmt(val):'-')+'</td>';
       }
     });
     h += '<td class="num" style="font-weight:700">'+fmt(annual)+'</td>';
     h += '<td style="text-align:right;white-space:nowrap">';
-    if(!isReadonly) {
-      h += '<button class="btn btn-outline btn-xs" onclick="openEditModal('+v._idx+')">Edit</button> ';
-      h += '<button class="btn btn-danger btn-xs" onclick="deleteVendor('+v._idx+')">✕</button>';
-    }
+    h += '<button class="btn btn-outline btn-xs" onclick="openEditModal('+v._idx+')">Edit</button> ';
+    h += '<button class="btn btn-danger btn-xs" onclick="deleteVendor('+v._idx+')">✕</button>';
     h += '</td></tr>';
   });
 
@@ -770,25 +517,25 @@ function renderBudgetView(brand, d, m, storm, notes, isReadonly) {
   h += '</div></div>';
 
   h += '<div class="two-col"><div class="card"><div class="card-title">Branch Notes</div>';
-  h += '<div style="display:flex;gap:8px;margin-bottom:12px"><textarea class="notes-area" id="notesArea" placeholder="Add a note..." style="min-height:50px;flex:1" '+(isReadonly?'disabled':'')+' required></textarea>';
-  if(!isReadonly) h += '<button class="btn btn-primary" onclick="saveNote()" style="align-self:flex-end">Save</button>';
+  h += '<div style="display:flex;gap:8px;margin-bottom:12px"><textarea class="notes-area" id="notesArea" placeholder="Add a note..." style="min-height:50px;flex:1" required></textarea>';
+  h += '<button class="btn btn-primary" onclick="saveNote()" style="align-self:flex-end">Save</button>';
   h += '</div>';
   h += '<div id="notesList" style="max-height:250px;overflow-y:auto">';
   if(notes.length===0) h += '<div style="font-size:12px;color:var(--muted);padding:8px">No notes yet.</div>';
   notes.forEach((n,i)=>{
     h += '<div class="note-entry"><div class="note-ts"><span>'+n.ts+'</span>';
-    if(!isReadonly) h += '<button class="note-del" onclick="deleteNoteById(\''+n.id+'\')" title="Delete note">✕</button>';
+    h += '<button class="note-del" onclick="deleteNoteById(\''+n.id+'\')" title="Delete note">✕</button>';
     h += '</div>';
     h += '<div class="note-text">'+n.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
   });
   h += '</div></div>';
 
-  h += '<div class="card"><div class="card-title">Storm Season Calendar <span style="font-weight:400;font-size:10px;color:var(--muted)">'+(isReadonly?'':'(click to toggle)')+'</span></div><div class="storm-cal">';
+  h += '<div class="card"><div class="card-title">Storm Season Calendar <span style="font-weight:400;font-size:10px;color:var(--muted)">(click to toggle)</span></div><div class="storm-cal">';
   MONTHS.forEach((mo,i)=>{
     const isS=storm.includes(i);
     const isCur=i===m;
     const ooh=brand.vendors.filter(v=>v.category==='OOH').reduce((s,v)=>s+v.monthly[i],0);
-    h += '<div class="storm-cal-cell '+(isS?'is-storm':'not-storm')+' '+(isReadonly?'readonly':'')+'" data-storm="'+i+'" style="'+(isCur?'outline:2px solid var(--accent);outline-offset:-1px':'')+'">';
+    h += '<div class="storm-cal-cell '+(isS?'is-storm':'not-storm')+'" data-storm="'+i+'" style="'+(isCur?'outline:2px solid var(--accent);outline-offset:-1px':'')+'">';
     h += '<div style="font-weight:600">'+mo+'</div>';
     h += '<div style="font-size:9px;color:var(--muted);margin-top:1px">'+(ooh>0?fmt(ooh):'-')+'</div>';
     h += (isS?'<div style="font-size:8px;margin-top:1px">⚡</div>':'<div style="font-size:8px;margin-top:1px;opacity:.3">-</div>');
@@ -799,7 +546,7 @@ function renderBudgetView(brand, d, m, storm, notes, isReadonly) {
   return h;
 }
 
-function renderAllocationView(brand, d, isReadonly) {
+function renderAllocationView(brand, d) {
   let h = '<div class="fade-in"><div class="card"><div class="card-title">'+MONTHS[selectedMonth]+' Allocation &amp; Budget vs. Approved</div>';
   h += '<div class="alloc-grid">';
 
@@ -813,7 +560,7 @@ function renderAllocationView(brand, d, isReadonly) {
 
     h += '<div class="alloc-cell '+(mi===selectedMonth?'current':'')+'">';
     h += '<div class="alloc-cell-label">'+mo+'</div>';
-    h += '<input type="number" class="alloc-cell-input" data-alloc-month="'+mi+'" value="'+(monthAlloc || 0)+'" '+(isReadonly?'disabled':'')+' />';
+    h += '<input type="number" class="alloc-cell-input" data-alloc-month="'+mi+'" value="'+(monthAlloc || 0)+'" />';
     h += '<div class="alloc-cell-sub '+(monthAlloc===0?'':(monthDiff>=0?'under':'over'))+'">'+subText+'</div>';
     h += '</div>';
   });
@@ -827,13 +574,13 @@ function renderAllocationView(brand, d, isReadonly) {
   h += '<div class="alloc-summary-item"><div class="alloc-summary-label">Status</div><div class="alloc-summary-value" style="font-size:14px;color:'+(d.annualVariance>=0?'var(--green)':'var(--red)'),'">'+(d.annualVariance>=0?'Under':'Over')+'</div></div>';
   h += '</div>';
 
-  if(!isReadonly) h += '<button class="btn btn-primary" style="margin-top:16px" onclick="saveAllocationData()">Save Allocation</button>';
+  h += '<button class="btn btn-primary" style="margin-top:16px" onclick="saveAllocationData()">Save Allocation</button>';
   h += '</div></div>';
 
   return h;
 }
 
-function renderAddModal(brand, isReadonly) {
+function renderAddModal(brand) {
   let h = '<div class="modal-overlay" onclick="if(event.target===this) { modal=null; render(); }"><div class="modal">';
   h += '<h3>Add Line Item</h3>';
   h += '<div class="form-row"><div class="form-group"><label>Vendor Name</label><input type="text" id="formVendor" placeholder="e.g., SCORPION"></div>';
@@ -848,7 +595,7 @@ function renderAddModal(brand, isReadonly) {
   return h;
 }
 
-function renderEditModal(brand, isReadonly) {
+function renderEditModal(brand) {
   const v = brand.vendors[editingVendorIdx];
   if (!v) return '';
   let h = '<div class="modal-overlay" onclick="if(event.target===this) { modal=null; editingVendorIdx=null; render(); }"><div class="modal">';
@@ -893,7 +640,7 @@ function bindAll() {
     };
   });
 
-  $$('.editable:not(.readonly)').forEach(el => {
+  $$('.editable').forEach(el => {
     el.onclick = (e) => {
       const vi = parseInt(e.target.dataset.v);
       const mi = parseInt(e.target.dataset.m);
@@ -904,7 +651,7 @@ function bindAll() {
       inp.value = val || 0;
       inp.onblur = () => {
         BRANDS[activeBrand].vendors[vi].monthly[mi] = parseInt(inp.value) || 0;
-        updateLineItem(BRANDS[activeBrand].id, BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi]);
+        updateLineItem(BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi]);
       };
       inp.onkeyup = (ke) => {
         if (ke.key === 'Enter') inp.blur();
@@ -916,7 +663,7 @@ function bindAll() {
     };
   });
 
-  $$('.storm-cal-cell:not(.readonly)').forEach(cell => {
+  $$('.storm-cal-cell').forEach(cell => {
     cell.onclick = async () => {
       const idx = parseInt(cell.dataset.storm);
       const brand = BRANDS[activeBrand];
@@ -930,6 +677,129 @@ function bindAll() {
       await saveStorm(brand.id, storm);
     };
   });
+}
+
+async function loadNotes(brandId) {
+  try {
+    const data = await fetchFromAppsScript('getNotes', { brand_id: brandId });
+    return (data.notes || []).map(n => ({
+      id: n.id,
+      text: n.text,
+      ts: new Date(n.created_at).toLocaleString()
+    }));
+  } catch (error) {
+    console.error('Error loading notes:', error);
+    return [];
+  }
+}
+
+async function addNote(brandId, text) {
+  if (!text.trim()) return;
+  try {
+    await postToAppsScript('addNote', { brand_id: brandId, text });
+    await loadAllData();
+  } catch (error) {
+    showToast('Error adding note: ' + error.message, 'error');
+  }
+}
+
+async function deleteNote(id) {
+  try {
+    await postToAppsScript('deleteNote', { id });
+    await loadAllData();
+  } catch (error) {
+    showToast('Error deleting note: ' + error.message, 'error');
+  }
+}
+
+async function updateLineItem(id, vendor) {
+  try {
+    const monthsObj = {};
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    monthNames.forEach((name, i) => {
+      monthsObj[name] = vendor.monthly[i];
+    });
+
+    await postToAppsScript('updateLineItem', {
+      id,
+      vendor: vendor.vendor,
+      publisher: vendor.publisher,
+      campaign: vendor.campaign,
+      category: vendor.category,
+      status: vendor.status,
+      status_note: vendor.status_note,
+      ...monthsObj
+    });
+    await loadAllData();
+  } catch (error) {
+    showToast('Error updating line item: ' + error.message, 'error');
+  }
+}
+
+async function addLineItem(brandId, vendor) {
+  try {
+    const monthsObj = {};
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    monthNames.forEach((name, i) => {
+      monthsObj[name] = vendor.monthly[i];
+    });
+
+    await postToAppsScript('addLineItem', {
+      brand_id: brandId,
+      vendor: vendor.vendor,
+      publisher: vendor.publisher,
+      campaign: vendor.campaign,
+      category: vendor.category,
+      status: vendor.status,
+      status_note: vendor.status_note,
+      sort_order: BRANDS[activeBrand].vendors.length,
+      ...monthsObj
+    });
+    modal = null;
+    await loadAllData();
+  } catch (error) {
+    showToast('Error adding line item: ' + error.message, 'error');
+  }
+}
+
+async function deleteLineItem(id) {
+  try {
+    await postToAppsScript('deleteLineItem', { id });
+    await loadAllData();
+  } catch (error) {
+    showToast('Error deleting line item: ' + error.message, 'error');
+  }
+}
+
+async function saveAllocation(brandId, monthlyArr) {
+  try {
+    const monthsObj = {};
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    monthNames.forEach((name, i) => {
+      monthsObj[name] = monthlyArr[i];
+    });
+
+    await postToAppsScript('updateAllocation', {
+      brand_id: brandId,
+      ...monthsObj
+    });
+    showToast('Allocation saved', 'success');
+    await loadAllData();
+  } catch (error) {
+    showToast('Error saving allocation: ' + error.message, 'error');
+  }
+}
+
+async function saveStorm(brandId, stormMonths) {
+  try {
+    await postToAppsScript('updateStormConfig', {
+      brand_id: brandId,
+      months: stormMonths.join(',')
+    });
+    await loadAllData();
+  } catch (error) {
+    showToast('Error saving storm config: ' + error.message, 'error');
+  }
 }
 
 function openAddModal() {
@@ -950,7 +820,7 @@ function submitAddVendor() {
     campaign: $('#formCampaign').value,
     category: $('#formCategory').value,
     status: $('#formStatus').value,
-    statusNote: $('#formStatusNote').value,
+    status_note: $('#formStatusNote').value,
     monthly: $('#formMonthly').value.split(',').map(v => parseInt(v) || 0)
   };
 
@@ -970,7 +840,7 @@ function submitEditVendor() {
     campaign: $('#formCampaign').value,
     category: $('#formCategory').value,
     status: $('#formStatus').value,
-    statusNote: $('#formStatusNote').value,
+    status_note: $('#formStatusNote').value,
     monthly: $('#formMonthly').value.split(',').map(v => parseInt(v) || 0)
   };
 
@@ -979,7 +849,7 @@ function submitEditVendor() {
     return;
   }
 
-  updateLineItem(BRANDS[activeBrand].id, v.id, vendor);
+  updateLineItem(v.id, vendor);
 }
 
 async function deleteVendor(idx) {
@@ -1008,13 +878,22 @@ function saveAllocationData() {
   saveAllocation(BRANDS[activeBrand].id, allocArr);
 }
 
-async function logout() {
-  if (confirm('Sign out?')) {
-    await handleLogout();
+async function refreshData() {
+  await loadAllData();
+  showToast('Data refreshed', 'success');
+}
+
+async function seedData() {
+  if (!confirm('Seed dashboard with sample data? This will populate all brands with example vendors.')) return;
+  try {
+    await postToAppsScript('initData', {});
+    showToast('Sample data loaded', 'success');
+    await loadAllData();
+  } catch (error) {
+    showToast('Error seeding data: ' + error.message, 'error');
   }
 }
 
-window.logout = logout;
 window.openAddModal = openAddModal;
 window.openEditModal = openEditModal;
 window.deleteVendor = deleteVendor;
@@ -1023,35 +902,24 @@ window.submitEditVendor = submitEditVendor;
 window.saveNote = saveNote;
 window.deleteNoteById = deleteNoteById;
 window.saveAllocationData = saveAllocationData;
+window.refreshData = refreshData;
+window.seedData = seedData;
 
 async function init() {
-  if (!supabaseClient) {
-    document.getElementById('loginError').innerHTML = 'Supabase is not configured. Please update the credentials.';
-    document.getElementById('loginError').style.display = 'block';
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL') {
+    const app = document.getElementById('app');
+    app.innerHTML = '<div class="loading-message"><strong>Configuration Required</strong><br><br>Please update the <code>APPS_SCRIPT_URL</code> at the top of the HTML file with your Google Apps Script URL.</div>';
     return;
   }
 
-  try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) {
-      currentUser = user;
-      await loadUserRole();
-      await loadAllData();
-      showApp();
-    } else {
-      document.getElementById('loginScreen').style.display = 'flex';
-    }
-  } catch (error) {
-    console.error('Init error:', error);
-  }
-}
+  renderLoadingScreen();
+  await loadAllData();
 
-document.getElementById('loginForm').onsubmit = (e) => {
-  e.preventDefault();
-  const email = $('#loginEmail').value;
-  const password = $('#loginPassword').value;
-  handleLogin(email, password);
-};
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(() => {
+    loadAllData();
+  }, 30000);
+}
 
 init();
 
