@@ -879,6 +879,8 @@ function submitEditVendor() {
     return;
   }
 
+  modal = null;
+  editingVendorIdx = null;
   updateLineItem(v.id, vendor);
 }
 
