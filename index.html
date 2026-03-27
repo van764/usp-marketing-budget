@@ -153,7 +153,7 @@ header h1 em{font-style:normal;color:var(--accent)}
 
 <script>
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytDwHbae4Ggrqtr1XveshwNlM02lxSxSLp8_a1A4lmc6fyl6zo7qiN3dIhqCgFcBPE/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX63vqgziNw-ygkfkP0KoaalOhkvmJhXqShXP5rJ44tgtXX65LogUBGdur-vm570my/exec';
 
 const BRAND_META = [
   { id: 'level', name: 'Level Roofing', color: '#2563eb' },
@@ -282,10 +282,7 @@ async function postToAppsScript(action, params = {}) {
   }
 }
 
-async function loadAllData() {
-  try {
-    const data = await fetchFromAppsScript('getAll');
-
+function processData(data) {
     const lineItems = (data.lineItems || []).map(item => ({
       ...item,
       monthly: [item.jan, item.feb, item.mar, item.apr, item.may, item.jun, item.jul, item.aug, item.sep, item.oct, item.nov, item.dec].map(Number)
@@ -324,6 +321,13 @@ async function loadAllData() {
     });
 
     lastUpdated = new Date();
+}
+
+async function loadAllData() {
+  try {
+    const data = await fetchFromAppsScript('getAll');
+    try { localStorage.setItem('usp_cache', JSON.stringify(data)); } catch(e) {}
+    processData(data);
     render();
   } catch (error) {
     console.error('Error loading data:', error);
@@ -912,8 +916,21 @@ async function init() {
     return;
   }
 
-  renderLoadingScreen();
-  await loadAllData();
+  // Show cached data instantly if available
+  try {
+    const cached = localStorage.getItem('usp_cache');
+    if (cached) {
+      processData(JSON.parse(cached));
+      render();
+    } else {
+      renderLoadingScreen();
+    }
+  } catch(e) {
+    renderLoadingScreen();
+  }
+
+  // Fetch fresh data in background
+  loadAllData();
 
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(() => {
