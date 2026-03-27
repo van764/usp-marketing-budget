@@ -338,9 +338,11 @@ function processData(data) {
 }
 
 async function loadAllData() {
+  if (_inlineEditing) return; // don't reload while user is typing
   try {
     const data = await fetchFromAppsScript('getAll');
     try { localStorage.setItem('usp_cache', JSON.stringify(data)); } catch(e) {}
+    if (_inlineEditing) return; // check again after async fetch
     processData(data);
     render();
   } catch (error) {
@@ -356,7 +358,22 @@ function renderLoadingScreen() {
 
 function render() {
   if (!BRANDS.length) return;
-  if (_inlineEditing) return; // don't nuke the active input
+
+  // If an inline edit is active, commit it before re-rendering
+  const activeInput = document.querySelector('.edit-input');
+  if (activeInput && _inlineEditing) {
+    const vi = parseInt(activeInput.closest ? activeInput.parentElement.closest('tr')?.dataset?.vendorIdx : -1);
+    // Just save the value into local data; the blur handler will be gone after re-render
+    const viAttr = activeInput._vi;
+    const miAttr = activeInput._mi;
+    if (viAttr != null && miAttr != null) {
+      const newVal = parseInt(activeInput.value) || 0;
+      BRANDS[activeBrand].vendors[viAttr].monthly[miAttr] = newVal;
+      updateLineItem(BRANDS[activeBrand].vendors[viAttr].id, BRANDS[activeBrand].vendors[viAttr], true);
+      showToast('Saved', 'success');
+    }
+    _inlineEditing = false;
+  }
 
   const brand = BRANDS[activeBrand];
   const d = compute(brand);
@@ -681,22 +698,26 @@ function bindAll() {
       inp.className = 'edit-input';
       inp.value = val || 0;
       _inlineEditing = true;
-      inp.onblur = async () => {
+      inp._vi = vi;
+      inp._mi = mi;
+
+      function commitEdit() {
+        if (!_inlineEditing) return; // already committed
         const newVal = parseInt(inp.value) || 0;
         _inlineEditing = false;
         BRANDS[activeBrand].vendors[vi].monthly[mi] = newVal;
-        render(); // immediately show updated value in the table
-        try {
-          await updateLineItem(BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi], true);
-          showToast('Saved', 'success');
-          // Reload in background after write settles
-          setTimeout(() => loadAllData(), 1000);
-        } catch(err) {
-          showToast('Save failed: ' + err.message, 'error');
-        }
-      };
-      inp.onkeyup = (ke) => {
-        if (ke.key === 'Enter') inp.blur();
+        render();
+        updateLineItem(BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi], true)
+          .then(() => {
+            showToast('Saved', 'success');
+            setTimeout(() => loadAllData(), 1200);
+          })
+          .catch(err => showToast('Save failed: ' + err.message, 'error'));
+      }
+
+      inp.onblur = () => commitEdit();
+      inp.onkeydown = (ke) => {
+        if (ke.key === 'Enter') { ke.preventDefault(); commitEdit(); }
         if (ke.key === 'Escape') { _inlineEditing = false; render(); }
       };
       editable.replaceWith(inp);
