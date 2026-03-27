@@ -171,6 +171,7 @@ let editingVendorIdx = null;
 let selectedMonth = 2;
 let lastUpdated = null;
 let autoRefreshInterval = null;
+let NOTES_CACHE = {};
 
 const TODAY_MONTH = 2;
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -320,6 +321,17 @@ function processData(data) {
       };
     });
 
+    // Cache notes from getAll response
+    NOTES_CACHE = {};
+    (data.notes || []).forEach(n => {
+      if (!NOTES_CACHE[n.brand_id]) NOTES_CACHE[n.brand_id] = [];
+      NOTES_CACHE[n.brand_id].push({
+        id: n.id,
+        text: n.text,
+        ts: new Date(n.created_at).toLocaleString()
+      });
+    });
+
     lastUpdated = new Date();
 }
 
@@ -340,7 +352,7 @@ function renderLoadingScreen() {
   app.innerHTML = '<div class="loading-message">Loading dashboard...</div>';
 }
 
-async function render() {
+function render() {
   if (!BRANDS.length) return;
 
   const brand = BRANDS[activeBrand];
@@ -348,7 +360,7 @@ async function render() {
   const m = selectedMonth;
   const storm = getStorm(brand);
   const isStorm = storm.includes(m);
-  const notes = await loadNotes(brand.id);
+  const notes = NOTES_CACHE[brand.id] || [];
 
   const app = document.getElementById('app');
   let html = '';
@@ -622,32 +634,44 @@ function renderEditModal(brand) {
   return h;
 }
 
+// Event delegation - bind ONCE, never rebind
+let _delegated = false;
 function bindAll() {
-  $$('.month-btn').forEach(btn => {
-    btn.onclick = () => {
-      selectedMonth = parseInt(btn.dataset.mo);
-      render();
-    };
-  });
+  if (_delegated) return;
+  _delegated = true;
+  const app = document.getElementById('app');
+  app.addEventListener('click', (e) => {
+    const t = e.target;
 
-  $$('.tab').forEach(btn => {
-    btn.onclick = () => {
-      activeBrand = parseInt(btn.dataset.idx);
+    // Month buttons
+    const monthBtn = t.closest('.month-btn');
+    if (monthBtn) {
+      selectedMonth = parseInt(monthBtn.dataset.mo);
       render();
-    };
-  });
+      return;
+    }
 
-  $$('.view-tab').forEach(btn => {
-    btn.onclick = () => {
-      activeView = btn.dataset.view;
+    // Brand tabs
+    const tab = t.closest('.tab');
+    if (tab && tab.dataset.idx !== undefined) {
+      activeBrand = parseInt(tab.dataset.idx);
       render();
-    };
-  });
+      return;
+    }
 
-  $$('.editable').forEach(el => {
-    el.onclick = (e) => {
-      const vi = parseInt(e.target.dataset.v);
-      const mi = parseInt(e.target.dataset.m);
+    // View tabs
+    const viewTab = t.closest('.view-tab');
+    if (viewTab) {
+      activeView = viewTab.dataset.view;
+      render();
+      return;
+    }
+
+    // Editable cells
+    const editable = t.closest('.editable');
+    if (editable && !editable.classList.contains('readonly')) {
+      const vi = parseInt(editable.dataset.v);
+      const mi = parseInt(editable.dataset.m);
       const val = BRANDS[activeBrand].vendors[vi].monthly[mi];
       const inp = document.createElement('input');
       inp.type = 'number';
@@ -661,15 +685,16 @@ function bindAll() {
         if (ke.key === 'Enter') inp.blur();
         if (ke.key === 'Escape') render();
       };
-      e.target.replaceWith(inp);
+      editable.replaceWith(inp);
       inp.focus();
       inp.select();
-    };
-  });
+      return;
+    }
 
-  $$('.storm-cal-cell').forEach(cell => {
-    cell.onclick = async () => {
-      const idx = parseInt(cell.dataset.storm);
+    // Storm calendar cells
+    const stormCell = t.closest('.storm-cal-cell');
+    if (stormCell) {
+      const idx = parseInt(stormCell.dataset.storm);
       const brand = BRANDS[activeBrand];
       const storm = getStorm(brand);
       const pos = storm.indexOf(idx);
@@ -678,8 +703,9 @@ function bindAll() {
       } else {
         storm.push(idx);
       }
-      await saveStorm(brand.id, storm);
-    };
+      saveStorm(brand.id, storm);
+      return;
+    }
   });
 }
 
