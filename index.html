@@ -174,6 +174,62 @@
             border-color: #1D1D1F;
         }
 
+        .month-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 8px 20px;
+            background: white;
+            border-bottom: 1px solid #E5E5EA;
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .month-tabs-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #86868B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .month-tab {
+            padding: 5px 12px;
+            border: 1px solid #E5E5EA;
+            background: white;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #86868B;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .month-tab:hover {
+            background: #F5F5F7;
+            color: #1D1D1F;
+        }
+
+        .month-tab.active {
+            background: #0071E3;
+            color: white;
+            border-color: #0071E3;
+        }
+
+        .month-tab.storm {
+            border-color: #FF9500;
+            color: #FF9500;
+            font-weight: 600;
+        }
+
+        .month-tab.storm.active {
+            background: #FF9500;
+            color: white;
+            border-color: #FF9500;
+        }
+
         .content {
             padding: 20px;
         }
@@ -609,7 +665,7 @@
         const { useState, useEffect, useRef, useCallback } = React;
         const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
-        // ââ Apps Script Backend ââ
+        // Ã¢ÂÂÃ¢ÂÂ Apps Script Backend Ã¢ÂÂÃ¢ÂÂ
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX63vqgziNw-ygkfkP0KoaalOhkvmJhXqShXP5rJ44tgtXX65LogUBGdur-vm570my/exec';
 
         const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -622,7 +678,7 @@
             'ALL': '#AF52DE'
         };
 
-        // ââ API Helpers ââ
+        // Ã¢ÂÂÃ¢ÂÂ API Helpers Ã¢ÂÂÃ¢ÂÂ
         async function fetchAPI(action) {
             try {
                 const controller = new AbortController();
@@ -680,7 +736,7 @@
             return obj;
         }
 
-        // ââ Embedded fallback data ââ
+        // Ã¢ÂÂÃ¢ÂÂ Embedded fallback data Ã¢ÂÂÃ¢ÂÂ
         const EMBEDDED_DATA = {
             LEVEL: {
                 allocations: [17000, 32700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 22700, 22700],
@@ -815,13 +871,14 @@
             const [locationData, setLocationData] = useState(EMBEDDED_DATA);
             const [items, setItems] = useState(EMBEDDED_DATA['LEVEL'].items.map(i => ({ ...i })));
             const [syncStatus, setSyncStatus] = useState('loading');
+            const [stormConfig, setStormConfig] = useState({level:[4,5,6,7,8],titan:[4,5,6,7,8],trademark:[4,5,6,7,8],pappas:[4,5,6,7,8],pro:[4,5,6,7,8]});
             const selectedLocationRef = useRef('LEVEL');
 
             useEffect(() => {
                 selectedLocationRef.current = selectedLocation;
             }, [selectedLocation]);
 
-            // ââ Load from Apps Script on mount ââ
+            // Ã¢ÂÂÃ¢ÂÂ Load from Apps Script on mount Ã¢ÂÂÃ¢ÂÂ
             useEffect(() => {
                 loadFromBackend();
             }, []);
@@ -873,6 +930,15 @@
                                 };
                             }
                         });
+                    }
+
+                    // Load storm config
+                    if (data.stormConfig && data.stormConfig.length > 0) {
+                        const sc = {};
+                        data.stormConfig.forEach(s => {
+                            sc[s.brand_id] = (s.months || '').split(',').map(Number).filter(n => !isNaN(n));
+                        });
+                        setStormConfig(sc);
                     }
 
                     setLocationData(newLocationData);
@@ -940,7 +1006,7 @@
             const trialSpend = trialItems.reduce((sum, item) => sum + item.months[selectedMonth], 0);
             const annualTrialSpend = trialItems.reduce((sum, item) => sum + item.months.reduce((a, b) => a + b, 0), 0);
 
-            // ââ Backend save helpers ââ
+            // Ã¢ÂÂÃ¢ÂÂ Backend save helpers Ã¢ÂÂÃ¢ÂÂ
             const saveItem = async (item, field, value) => {
                 if (!item.id) return;
                 setSyncStatus('syncing');
@@ -1080,6 +1146,15 @@
                         {LOCATIONS.map(loc => (
                             <button key={loc} className={`location-tab ${selectedLocation === loc ? 'active' : ''}`} onClick={() => setSelectedLocation(loc)}>{loc}</button>
                         ))}
+                    </div>
+
+                    {/* STORM MONTH TABS */}
+                    <div className="month-tabs">
+                        <span className="month-tabs-label">Storm</span>
+                        {MONTHS.map((month, idx) => {
+                            const isStorm = (stormConfig[selectedLocation.toLowerCase()] || []).includes(idx);
+                            return <button key={month} className={`month-tab ${idx === selectedMonth ? 'active' : ''} ${isStorm ? 'storm' : ''}`} onClick={() => setSelectedMonth(idx)}>{month}</button>;
+                        })}
                     </div>
 
                     {/* MAIN CONTENT */}
