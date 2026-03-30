@@ -66,8 +66,6 @@ header h1 em{font-style:normal;color:var(--accent)}
 .status-unapproved{background:#fce7f3;color:#be185d;border:1px solid #fbcfe8}
 .drag-handle{cursor:grab;color:var(--muted);font-size:14px;padding:0 4px;user-select:none;opacity:.4;transition:.15s}
 .drag-handle:hover{opacity:1;color:var(--text)}
-tr.dragging{opacity:.4;background:#e0e7ff}
-tr.drag-over{border-top:3px solid var(--accent)}
 .status-note{font-size:9px;color:var(--muted);display:block;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
 .editable{cursor:pointer;border-radius:3px;padding:1px 3px;transition:.1s}
 .editable:hover{background:#eef2ff}
@@ -303,7 +301,7 @@ function processData(data) {
     });
 
     BRANDS = BRAND_META.map(meta => {
-      const vendors = lineItems.filter(li => li.brand_id === meta.id).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const vendors = lineItems.filter(li => li.brand_id === meta.id);
       const monthlyBudget = Array(12).fill(0);
       vendors.filter(v => v.status !== 'unapproved').forEach(v => {
         v.monthly.forEach((val, i) => monthlyBudget[i] += val);
@@ -338,11 +336,9 @@ function processData(data) {
 }
 
 async function loadAllData() {
-  if (_inlineEditing) return; // don't reload while user is typing
   try {
     const data = await fetchFromAppsScript('getAll');
     try { localStorage.setItem('usp_cache', JSON.stringify(data)); } catch(e) {}
-    if (_inlineEditing) return; // check again after async fetch
     processData(data);
     render();
   } catch (error) {
@@ -358,22 +354,6 @@ function renderLoadingScreen() {
 
 function render() {
   if (!BRANDS.length) return;
-
-  // If an inline edit is active, commit it before re-rendering
-  const activeInput = document.querySelector('.edit-input');
-  if (activeInput && _inlineEditing) {
-    const vi = parseInt(activeInput.closest ? activeInput.parentElement.closest('tr')?.dataset?.vendorIdx : -1);
-    // Just save the value into local data; the blur handler will be gone after re-render
-    const viAttr = activeInput._vi;
-    const miAttr = activeInput._mi;
-    if (viAttr != null && miAttr != null) {
-      const newVal = parseInt(activeInput.value) || 0;
-      BRANDS[activeBrand].vendors[viAttr].monthly[miAttr] = newVal;
-      updateLineItem(BRANDS[activeBrand].vendors[viAttr].id, BRANDS[activeBrand].vendors[viAttr], true);
-      showToast('Saved', 'success');
-    }
-    _inlineEditing = false;
-  }
 
   const brand = BRANDS[activeBrand];
   const d = compute(brand);
@@ -471,8 +451,8 @@ function renderBudgetView(brand, d, m, storm, notes) {
   sorted.forEach((v,si)=>{
     const rowCls=v.status==='ended'?'ended-row':v.status==='trial'?'trial-row':v.status==='unapproved'?'unapproved-row':'';
     const annual=v.monthly.reduce((a,b)=>a+b,0);
-    h += '<tr class="'+rowCls+'" draggable="true" data-drag-idx="'+si+'" data-vendor-idx="'+v._idx+'">';
-    h += '<td><span class="drag-handle" data-drag-grip="true">⋮⋮</span></td>';
+    h += '<tr class="'+rowCls+'">';
+    h += '<td><span class="drag-handle">⋮⋮</span></td>';
     h += '<td><div class="vendor-name">'+v.vendor+'</div><div class="pub-camp">'+v.publisher+' • '+v.campaign+'</div></td>';
     h += '<td><span class="cat-dot" style="background:'+(CAT_COLORS[v.category]||'#94a3b8')+'"></span><span style="font-size:10px">'+v.category+'</span></td>';
     h += '<td>'+statusHTML(v)+'</td>';
@@ -697,28 +677,13 @@ function bindAll() {
       inp.type = 'number';
       inp.className = 'edit-input';
       inp.value = val || 0;
-      _inlineEditing = true;
-      inp._vi = vi;
-      inp._mi = mi;
-
-      function commitEdit() {
-        if (!_inlineEditing) return; // already committed
-        const newVal = parseInt(inp.value) || 0;
-        _inlineEditing = false;
-        BRANDS[activeBrand].vendors[vi].monthly[mi] = newVal;
-        render();
-        updateLineItem(BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi], true)
-          .then(() => {
-            showToast('Saved', 'success');
-            setTimeout(() => loadAllData(), 1200);
-          })
-          .catch(err => showToast('Save failed: ' + err.message, 'error'));
-      }
-
-      inp.onblur = () => commitEdit();
-      inp.onkeydown = (ke) => {
-        if (ke.key === 'Enter') { ke.preventDefault(); commitEdit(); }
-        if (ke.key === 'Escape') { _inlineEditing = false; render(); }
+      inp.onblur = () => {
+        BRANDS[activeBrand].vendors[vi].monthly[mi] = parseInt(inp.value) || 0;
+        updateLineItem(BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi]);
+      };
+      inp.onkeyup = (ke) => {
+        if (ke.key === 'Enter') inp.blur();
+        if (ke.key === 'Escape') render();
       };
       editable.replaceWith(inp);
       inp.focus();
@@ -740,74 +705,6 @@ function bindAll() {
       }
       saveStorm(brand.id, storm);
       return;
-    }
-  });
-
-  // Drag-and-drop reordering
-  let _dragSrcIdx = null;
-
-  app.addEventListener('dragstart', (e) => {
-    const row = e.target.closest('tr[data-drag-idx]');
-    if (!row) { e.preventDefault(); return; }
-    // Only allow drag from the handle
-    if (!e.target.closest('[data-drag-grip]')) { e.preventDefault(); return; }
-    _dragSrcIdx = parseInt(row.dataset.dragIdx);
-    row.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', _dragSrcIdx);
-  });
-
-  app.addEventListener('dragover', (e) => {
-    const row = e.target.closest('tr[data-drag-idx]');
-    if (!row) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    // Clear all drag-over highlights
-    app.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
-    row.classList.add('drag-over');
-  });
-
-  app.addEventListener('dragleave', (e) => {
-    const row = e.target.closest('tr[data-drag-idx]');
-    if (row) row.classList.remove('drag-over');
-  });
-
-  app.addEventListener('dragend', (e) => {
-    app.querySelectorAll('tr.dragging, tr.drag-over').forEach(r => {
-      r.classList.remove('dragging', 'drag-over');
-    });
-    _dragSrcIdx = null;
-  });
-
-  app.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    const row = e.target.closest('tr[data-drag-idx]');
-    if (!row || _dragSrcIdx === null) return;
-    const destIdx = parseInt(row.dataset.dragIdx);
-    if (_dragSrcIdx === destIdx) return;
-
-    app.querySelectorAll('tr.dragging, tr.drag-over').forEach(r => {
-      r.classList.remove('dragging', 'drag-over');
-    });
-
-    // Reorder in the local vendors array
-    const vendors = BRANDS[activeBrand].vendors;
-    const [moved] = vendors.splice(_dragSrcIdx, 1);
-    vendors.splice(destIdx, 0, moved);
-    _dragSrcIdx = null;
-    render();
-
-    // Persist new sort_order for all affected vendors
-    try {
-      const updates = vendors.map((v, i) => {
-        v.sort_order = i;
-        return updateLineItem(v.id, v, true);
-      });
-      await Promise.all(updates);
-      showToast('Order saved', 'success');
-      setTimeout(() => loadAllData(), 1000);
-    } catch(err) {
-      showToast('Error saving order: ' + err.message, 'error');
     }
   });
 }
@@ -845,9 +742,7 @@ async function deleteNote(id) {
   }
 }
 
-let _inlineEditing = false;
-
-async function updateLineItem(id, vendor, skipReload) {
+async function updateLineItem(id, vendor) {
   try {
     const monthsObj = {};
     const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -863,14 +758,9 @@ async function updateLineItem(id, vendor, skipReload) {
       category: vendor.category,
       status: vendor.status,
       status_note: vendor.status_note,
-      sort_order: vendor.sort_order != null ? vendor.sort_order : undefined,
       ...monthsObj
     });
-    if (!skipReload) {
-      // Small delay so the sheet has time to commit the write
-      await new Promise(r => setTimeout(r, 800));
-      await loadAllData();
-    }
+    await loadAllData();
   } catch (error) {
     showToast('Error updating line item: ' + error.message, 'error');
   }
