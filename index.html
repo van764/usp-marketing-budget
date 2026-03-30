@@ -609,7 +609,7 @@
         const { useState, useEffect, useRef, useCallback } = React;
         const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
-        // ── Apps Script Backend ──
+        // ââ Apps Script Backend ââ
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX63vqgziNw-ygkfkP0KoaalOhkvmJhXqShXP5rJ44tgtXX65LogUBGdur-vm570my/exec';
 
         const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -622,7 +622,7 @@
             'ALL': '#AF52DE'
         };
 
-        // ── API Helpers ──
+        // ââ API Helpers ââ
         async function fetchAPI(action) {
             try {
                 const controller = new AbortController();
@@ -680,11 +680,11 @@
             return obj;
         }
 
-        // ── Embedded fallback data ──
+        // ââ Embedded fallback data ââ
         const EMBEDDED_DATA = {
             LEVEL: {
                 allocations: [17000, 32700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 22700, 22700],
-                revenue: 12000000,
+                revenue: 15500000,
                 items: [
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696] },
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising (Roof)', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 500, 0, 0] },
@@ -712,7 +712,7 @@
             },
             TITAN: {
                 allocations: [27200, 27200, 57200, 27200, 27200, 27200, 27200, 27200, 27200, 27200, 27200, 27200],
-                revenue: 8000000,
+                revenue: 21400000,
                 items: [
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [9300, 9300, 9300, 9300, 9300, 9300, 9300, 9300, 9300, 2000, 2000, 2000] },
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 4000, 2000, 4000, 2000, 2000, 0] },
@@ -734,7 +734,7 @@
             },
             TRADEMARK: {
                 allocations: [50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100],
-                revenue: 20000000,
+                revenue: 17800000,
                 items: [
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000] },
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising (Roof)', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [5000, 5000, 5000, 5000, 5000, 10000, 5000, 5000, 5000, 5000, 5000, 10000] },
@@ -758,7 +758,7 @@
             },
             PAPPAS: {
                 allocations: [16000, 16000, 36000, 21000, 21000, 21000, 21000, 21000, 21000, 21000, 21000, 21000],
-                revenue: 13000000,
+                revenue: 18000000,
                 items: [
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500] },
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 3000, 3000, 3000, 5000, 1500, 1500, 3000, 1500, 1500, 1500] },
@@ -782,7 +782,7 @@
             },
             PRO: {
                 allocations: [25700, 25700, 45700, 35700, 35700, 30700, 30700, 30700, 30700, 30700, 30700, 30700],
-                revenue: 34000000,
+                revenue: 27400000,
                 items: [
                     { vendor: 'MARCHEX', publisher: 'MARCHEX', campaign: 'Call Tracking', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
                     { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 6000, 6000, 8000, 12000, 6000, 8000, 12000, 6000, 0, 0] },
@@ -821,7 +821,7 @@
                 selectedLocationRef.current = selectedLocation;
             }, [selectedLocation]);
 
-            // ── Load from Apps Script on mount ──
+            // ââ Load from Apps Script on mount ââ
             useEffect(() => {
                 loadFromBackend();
             }, []);
@@ -940,7 +940,7 @@
             const trialSpend = trialItems.reduce((sum, item) => sum + item.months[selectedMonth], 0);
             const annualTrialSpend = trialItems.reduce((sum, item) => sum + item.months.reduce((a, b) => a + b, 0), 0);
 
-            // ── Backend save helpers ──
+            // ââ Backend save helpers ââ
             const saveItem = async (item, field, value) => {
                 if (!item.id) return;
                 setSyncStatus('syncing');
