@@ -1,843 +1,1351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>USP Marketing Budget 2026</title>
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#f5f6fa;--card:#fff;--border:#e2e5ec;--text:#1a1d26;--muted:#6b7185;
-      --accent:#2563eb;--accent-lt:#eff4ff;--green:#16a34a;--green-bg:#dcfce7;
-      --yellow:#ca8a04;--yellow-bg:#fef9c3;--red:#dc2626;--red-bg:#fee2e2;
-      --orange:#ea580c;--orange-bg:#fff7ed;
-      --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
-    }
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
-    .app{max-width:1400px;margin:0 auto;padding:16px}
-    header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 0}
-    header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
-    header h1 em{font-style:normal;color:var(--accent)}
-    .header-r{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-    .header-controls{display:flex;align-items:center;gap:12px}
-    .header-timestamp{font-size:12px;color:var(--muted)}
-    .badge{font-weight:600;font-size:12px;padding:4px 12px;border-radius:20px}
-    .badge-storm{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
-    .month-picker{display:flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:3px;box-shadow:var(--shadow)}
-    .month-btn{padding:5px 9px;font-size:11px;font-weight:600;border:none;background:none;border-radius:7px;cursor:pointer;color:var(--muted);transition:.15s;white-space:nowrap;position:relative}
-    .month-btn:hover{background:#f1f3f7;color:var(--text)}
-    .month-btn.active{background:var(--accent);color:#fff}
-    .month-btn.storm-month::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#f59e0b}
-    .month-btn.active.storm-month::after{background:#fde68a}
-    .tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;border-bottom:2px solid var(--border)}
-    .tab{padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;transition:.15s}
-    .tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-    .tab-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:20px;margin-bottom:16px}
-    .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
-    .kpi{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:14px}
-    .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px}
-    .kpi-value{font-size:22px;font-weight:700;letter-spacing:-.4px}
-    .kpi-sub{font-size:11px;color:var(--muted);margin-top:1px}
-    .prog-bg{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;margin-top:8px}
-    .prog-fill{height:100%;border-radius:5px;transition:width .4s}
-    .prog-label{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-top:4px}
-    .table-wrap{overflow-x:auto;border-radius:8px;-webkit-overflow-scrolling:touch}
-    .vtable{width:100%;border-collapse:collapse;font-size:12px;min-width:1100px}
-    .vtable th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:7px 6px;border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);z-index:2;white-space:nowrap}
-    .vtable td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
-    .vtable tr:last-child td{border-bottom:none}
-    .vtable .num{text-align:right;font-variant-numeric:tabular-nums}
-    .vtable .cat-dot{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:4px}
-    .vtable .vendor-name{font-weight:600;font-size:12px}
-    .vtable .pub-camp{font-size:10px;color:var(--muted)}
-    .vtable .trial-row{background:var(--orange-bg)}
-    .vtable .ended-row{opacity:.6}
-    .vtable .unapproved-row{background:#fdf2f8;border-left:3px solid #be185d}
-    .vtable .month-current{background:#eff4ff;font-weight:700}
-    .vtable .month-past{color:var(--muted)}
-    .vtable .total-row{background:#f8f9fc;font-weight:700}.vtable .total-row td{border-top:2px solid var(--border)}
-    .status-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap;display:inline-block}
-    .status-active{background:var(--green-bg);color:var(--green)}
-    .status-future{background:var(--accent-lt);color:var(--accent)}
-    .status-ended{background:#f1f3f7;color:var(--muted)}
-    .status-trial{background:var(--orange-bg);color:var(--orange);border:1px solid #fed7aa}
-    .status-unapproved{background:#fce7f3;color:#be185d;border:1px solid #fbcfe8}
-    .drag-handle{cursor:grab;color:var(--muted);font-size:14px;padding:0 4px;user-select:none;opacity:.4;transition:.15s}
-    .drag-handle:hover{opacity:1;color:var(--text)}
-    .status-note{font-size:9px;color:var(--muted);display:block;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
-    .editable{cursor:pointer;border-radius:3px;padding:1px 3px;transition:.1s}
-    .editable:hover{background:#eef2ff}
-    .editable.readonly{cursor:default;opacity:.6}
-    .editable.readonly:hover{background:transparent}
-    .edit-input{width:65px;font-size:12px;font-family:inherit;padding:2px 3px;border:1.5px solid var(--accent);border-radius:4px;text-align:right;outline:none;background:#fff}
-    .mini-chart{display:flex;align-items:flex-end;gap:3px;height:56px}
-    .mini-bar{flex:1;border-radius:3px 3px 0 0;min-width:12px;transition:height .3s}
-    .mini-bar.current{outline:2px solid var(--accent);outline-offset:-1px}
-    .chart-labels{display:flex;gap:3px;margin-top:4px}
-    .chart-labels span{flex:1;text-align:center;font-size:9px;color:var(--muted)}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
-    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#1d4ed8}
-    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
-    .btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}.btn-outline:hover{background:var(--accent-lt)}
-    .btn-outline.readonly{opacity:.5;cursor:not-allowed;pointer-events:none}
-    .btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#15803d}
-    .btn-danger{background:transparent;color:var(--red);border:1.5px solid var(--red)}.btn-danger:hover{background:var(--red-bg)}
-    .btn-danger.readonly{opacity:.5;cursor:not-allowed;pointer-events:none}
-    .btn-sm{padding:5px 12px;font-size:11px}
-    .btn-xs{padding:3px 7px;font-size:10px}
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
-    .modal{background:var(--card);border-radius:var(--radius);max-width:700px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.15);padding:24px;max-height:85vh;overflow-y:auto}
-    .modal h3{font-size:17px;font-weight:700;margin-bottom:16px}
-    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-    .form-group{display:flex;flex-direction:column;gap:4px}
-    .form-group label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
-    .form-group input,.form-group select,.form-group textarea{font-size:13px;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit}
-    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-    .form-group input:disabled,.form-group select:disabled,.form-group textarea:disabled{background:#f5f6fa;color:var(--muted);cursor:not-allowed}
-    .notes-area{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;background:#fafbfd}
-    .notes-area:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-    .notes-area:disabled{background:#f5f6fa;color:var(--muted);cursor:not-allowed}
-    .note-entry{padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:#fafbfd;position:relative;transition:background .15s}
-    .note-entry:hover{background:#f1f3f7}
-    .note-entry .note-ts{font-size:10px;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
-    .note-entry .note-text{font-size:13px;margin-top:4px;white-space:pre-wrap}
-    .note-del{opacity:0;border:none;background:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;transition:.15s;line-height:1}
-    .note-del:hover{background:var(--red-bg)}
-    .note-entry:hover .note-del{opacity:1}
-    .note-del:disabled{opacity:.5;cursor:not-allowed}
-    .storm-cal{display:flex;gap:3px;margin-top:8px}
-    .storm-cal-cell{flex:1;text-align:center;padding:5px 2px;border-radius:6px;font-size:10px;cursor:pointer;transition:.15s}
-    .storm-cal-cell:hover{transform:scale(1.05)}
-    .storm-cal-cell.is-storm{background:#fef3c7;border:1px solid #fde68a}
-    .storm-cal-cell.not-storm{background:#f1f3f7;border:1px solid var(--border)}
-    .storm-cal-cell.readonly{cursor:default;opacity:.6}
-    .storm-cal-cell.readonly:hover{transform:none}
-    .q-header{font-size:9px;text-align:center;color:var(--accent);font-weight:700;letter-spacing:.4px;padding:0 2px 4px;border-bottom:none!important}
-    .view-tabs{display:flex;gap:0;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:3px;box-shadow:var(--shadow);width:fit-content}
-    .view-tab{padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;border-radius:7px;color:var(--muted);transition:.15s}
-    .view-tab:hover{color:var(--text);background:#f1f3f7}
-    .view-tab.active{background:var(--accent);color:#fff}
-    .alloc-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px}
-    .alloc-cell{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;transition:.15s}
-    .alloc-cell:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
-    .alloc-cell.current{border-color:var(--accent);background:var(--accent-lt)}
-    .alloc-cell-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
-    .alloc-cell-input{width:100%;font-size:16px;font-weight:700;font-family:inherit;text-align:center;border:none;background:transparent;outline:none;color:var(--text);padding:4px 0}
-    .alloc-cell-input:focus{background:#fff;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--accent)}
-    .alloc-cell-input:disabled{cursor:not-allowed;opacity:.6}
-    .alloc-cell-sub{font-size:9px;color:var(--muted);margin-top:4px;font-weight:600}
-    .alloc-cell-sub.over{color:var(--red)}
-    .alloc-cell-sub.under{color:var(--green)}
-    .alloc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
-    .alloc-summary-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
-    .alloc-summary-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
-    .alloc-summary-value{font-size:24px;font-weight:700;letter-spacing:-.5px}
-    .toast{position:fixed;bottom:16px;right:16px;background:var(--text);color:#fff;padding:12px 16px;border-radius:8px;font-size:13px;z-index:1000;animation:slideIn .3s ease;max-width:300px}
-    .toast.error{background:var(--red)}
-    .toast.success{background:var(--green)}
-    .loading-message{text-align:center;padding:40px;font-size:14px;color:var(--muted)}
-    @keyframes slideIn{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
-    @media(max-width:1200px){.alloc-grid{grid-template-columns:repeat(6,1fr)}}
-    @media(max-width:900px){.two-col{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.alloc-grid{grid-template-columns:repeat(4,1fr)}.alloc-summary{grid-template-columns:repeat(2,1fr)}.header-r{width:100%}}
-    @media(max-width:480px){.kpi-grid{grid-template-columns:1fr}.alloc-grid{grid-template-columns:repeat(3,1fr)}}
-    .fade-in{animation:fadeIn .2s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USP Budget Dashboard 2026</title>
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.2/Recharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background-color: #F5F5F7;
+            color: #1D1D1F;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(245, 245, 247, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #E5E5EA;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #34C759;
+            border-radius: 50%;
+        }
+
+        .nav-dot.syncing {
+            background-color: #FF9500;
+            animation: pulse 1s infinite;
+        }
+
+        .nav-dot.error {
+            background-color: #FF3B30;
+        }
+
+        .nav-dot.offline {
+            background-color: #8E8E93;
+        }
+
+        .nav-dot.loading {
+            background-color: #007AFF;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .nav-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #8E8E93;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            background: #007AFF;
+            color: white;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hint-text {
+            font-size: 12px;
+            color: #8E8E93;
+        }
+
+        .sync-status {
+            font-size: 11px;
+            color: #34C759;
+            font-weight: 500;
+        }
+
+        .sync-status.error {
+            color: #FF3B30;
+        }
+
+        .sync-status.syncing {
+            color: #FF9500;
+        }
+
+        .sync-status.offline {
+            color: #8E8E93;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #1D1D1F;
+        }
+
+        .location-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            background: white;
+            border-bottom: 1px solid #E5E5EA;
+            overflow-x: auto;
+        }
+
+        .location-tab {
+            padding: 8px 16px;
+            border: 1px solid #E5E5EA;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1D1D1F;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .location-tab.active {
+            background: #1D1D1F;
+            color: white;
+            border-color: #1D1D1F;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            border-left: 4px solid #007AFF;
+        }
+
+        .kpi-card.green { border-left-color: #34C759; }
+        .kpi-card.red { border-left-color: #FF3B30; }
+        .kpi-card.orange { border-left-color: #FF9500; }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1D1D1F;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value.green { color: #34C759; }
+        .kpi-value.red { color: #FF3B30; }
+        .kpi-value.orange { color: #FF9500; }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-subtitle {
+            font-size: 13px;
+            color: #8E8E93;
+            margin-top: 8px;
+        }
+
+        .utilization-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .utilization-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1D1D1F;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .utilization-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .utilization-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #34C759;
+        }
+
+        .utilization-right {
+            font-size: 14px;
+            color: #8E8E93;
+        }
+
+        .utilization-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #E5E5EA;
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .utilization-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34C759, #007AFF);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1D1D1F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .add-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover { background: #0051D5; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead { background: #F5F5F7; }
+
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E5EA;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #E5E5EA;
+            font-size: 13px;
+            color: #1D1D1F;
+        }
+
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: #F9F9F9; }
+        tbody tr.dragging { opacity: 0.5; }
+        tbody tr.drag-over { border-top: 2px solid #007AFF; }
+
+        .drag-handle {
+            cursor: grab;
+            color: #8E8E93;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .drag-handle:active { cursor: grabbing; }
+
+        .vendor-cell { min-width: 200px; }
+        .vendor-name { font-weight: 600; color: #1D1D1F; }
+        .vendor-subtitle { font-size: 12px; color: #8E8E93; }
+
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .category-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .status-pill.active { background: #D1F5D1; color: #34C759; }
+        .status-pill.trial { background: #FFE5CC; color: #FF9500; }
+        .status-pill.unapproved { background: #FFD1D1; color: #FF3B30; }
+        .status-pill.ended { background: #E5E5EA; color: #8E8E93; }
+
+        .month-cell {
+            text-align: right;
+            min-width: 80px;
+            cursor: cell;
+            padding: 8px;
+        }
+
+        .month-cell.current {
+            background: #F0F0F0;
+            font-weight: 600;
+        }
+
+        .total-row { font-weight: 600; background: #F9F9F9; }
+        .allocation-row { color: #FF9500; font-weight: 600; }
+        .variance-row { background: #F9F9F9; }
+        .variance-positive { color: #34C759; }
+        .variance-negative { color: #FF3B30; }
+
+        .status-summary {
+            font-size: 13px;
+            color: #8E8E93;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #E5E5EA;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1D1D1F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .allocation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .allocation-table th {
+            background: #F5F5F7;
+            padding: 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            border-bottom: 1px solid #E5E5EA;
+        }
+
+        .allocation-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #E5E5EA;
+            font-size: 13px;
+        }
+
+        .allocation-table input {
+            width: 100%;
+            border: 1px solid #007AFF;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1D1D1F;
+            margin-bottom: 16px;
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1D1D1F;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-primary { background: #007AFF; color: white; }
+        .modal-btn-primary:hover { background: #0051D5; }
+        .modal-btn-secondary { background: #F5F5F7; color: #1D1D1F; }
+        .modal-btn-secondary:hover { background: #E5E5EA; }
+
+        .settings-group {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #F9F9F9;
+            border-radius: 8px;
+        }
+
+        .settings-group-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1D1D1F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .settings-group-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .settings-group-input:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        .settings-note {
+            font-size: 12px;
+            color: #8E8E93;
+            margin-top: 8px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #FF3B30;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding: 2px 6px;
+        }
+
+        tbody tr:hover .delete-btn {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
-  <div class="app" id="app"></div>
-  <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxqeY0l8l7DpQ6GSFOO4UdVeJaxux411ZMLk1WieU61kJK3VWNee_7esiB0tA9YIPd/exec';
+    <div id="root"></div>
 
-    const BRAND_META = [
-      { id: 'level', name: 'Level Roofing', color: '#2563eb' },
-      { id: 'titan', name: 'Titan Roofing', color: '#7c3aed' },
-      { id: 'trademark', name: 'Trademark Roofing', color: '#059669' },
-      { id: 'pappas', name: 'Pappas Roofing', color: '#d97706' },
-      { id: 'pro', name: 'Pro Restoration', color: '#dc2626' }
-    ];
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
-    let BRANDS = [];
-    let activeBrand = 0;
-    let activeView = 'budget';
-    let modal = null;
-    let editingVendorIdx = null;
-    let selectedMonth = 2;
-    let lastUpdated = null;
-    let autoRefreshInterval = null;
-    const TODAY_MONTH = 2;
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const SIM_SPEND = {0:0.92,1:0.87};
-    const SIM_CUR = 0.63;
-    const CAT_COLORS = {
-      'DIGITAL':'#3b82f6','SOCIAL':'#8b5cf6','OOH':'#f59e0b','DIRECT MAIL':'#10b981',
-      'DIRECTORY':'#6366f1','TECHNOLOGY':'#64748b','EMAIL':'#ec4899','BROADCAST':'#14b8a6',
-      'OTHER':'#94a3b8','TEXT':'#f97316'
-    };
+        // ── Apps Script Backend ──
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX63vqgziNw-ygkfkP0KoaalOhkvmJhXqShXP5rJ44tgtXX65LogUBGdur-vm570my/exec';
 
-    function showToast(msg, type='info') {
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
-      toast.style.background = type === 'error' ? 'var(--red)' : type === 'success' ? 'var(--green)' : '#666';
-      toast.textContent = msg;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
-
-    const $ = (s,p) => (p||document).querySelector(s);
-    const $$ = (s,p) => [...(p||document).querySelectorAll(s)];
-    const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
-    const pct = n => Math.round(n*100) + '%';
-
-    function getStorm(brand) {
-      return brand.stormMonths || [4,5,6,7,8];
-    }
-
-    function statusHTML(v) {
-      const s = v.status;
-      const note = v.status_note;
-      let pill = '';
-      if(s==='active') pill = '<span class="status-pill status-active">Active</span>';
-      else if(s==='trial') pill = '<span class="status-pill status-trial">Trial</span>';
-      else if(s==='ended') pill = '<span class="status-pill status-ended">Ended</span>';
-      else if(s==='unapproved') pill = '<span class="status-pill status-unapproved">Unapproved</span>';
-      else pill = '<span class="status-pill status-active">Active</span>';
-      if(note) pill += '<span class="status-note" title="'+note.replace(/"/g,'&quot;')+'">'+note+'</span>';
-      return pill;
-    }
-
-    function getMonthSpendPct(mi) {
-      if (mi < TODAY_MONTH) return SIM_SPEND[mi] !== undefined ? SIM_SPEND[mi] : 0.9;
-      if (mi === TODAY_MONTH) return SIM_CUR;
-      return 0;
-    }
-
-    function compute(brand) {
-      const m = selectedMonth;
-      const budget = brand.monthlyBudget[m];
-      const spendPct = getMonthSpendPct(m);
-      const spent = Math.round(budget * spendPct);
-      const remaining = budget - spent;
-      const ratio = budget > 0 ? spent / budget : 0;
-      const priorB = m > 0 ? brand.monthlyBudget[m-1] : 0;
-      const priorSpent = Math.round(priorB * (m > 0 ? getMonthSpendPct(m-1) : 0));
-      let ytdB=0, ytdS=0;
-      for(let i=0;i<=m;i++){
-        ytdB += brand.monthlyBudget[i];
-        ytdS += Math.round(brand.monthlyBudget[i] * getMonthSpendPct(i));
-      }
-      const qTotals=[[0,1,2],[3,4,5],[6,7,8],[9,10,11]].map(q=>q.reduce((s,i)=>s+brand.monthlyBudget[i],0));
-      const isFuture = m > TODAY_MONTH;
-      const isCurrent = m === TODAY_MONTH;
-      const trialVendors = brand.vendors.filter(v=>v.status==='trial');
-      const unapprovedVendors = brand.vendors.filter(v=>v.status==='unapproved');
-      const trialMonth = trialVendors.reduce((s,v)=>s+v.monthly[m],0);
-      const trialAnnual = trialVendors.reduce((s,v)=>s+v.monthly.reduce((a,b)=>a+b,0),0);
-      const unapprovedMonth = unapprovedVendors.reduce((s,v)=>s+v.monthly[m],0);
-      const unapprovedAnnual = unapprovedVendors.reduce((s,v)=>s+v.monthly.reduce((a,b)=>a+b,0),0);
-      const allocArr = brand.allocations || Array(12).fill(0);
-      const allocMonth = allocArr[m] || 0;
-      const allocAnnual = allocArr.reduce((a,b)=>a+b,0);
-      const monthVariance = allocMonth - budget;
-      const annualVariance = allocAnnual - brand.annualBudget;
-      return{budget,spent,remaining,ratio,priorSpent,ytdBudget:ytdB,ytdSpent:ytdS,qTotals,isFuture,isCurrent,trialMonth,trialAnnual,unapprovedMonth,unapprovedAnnual,allocArr,allocMonth,allocAnnual,monthVariance,annualVariance};
-    }
-
-    function getColor(r){
-      if(r>=.95)return{bar:'#dc2626'};if(r>=.80)return{bar:'#ca8a04'};return{bar:'#16a34a'};
-    }
-
-    async function fetchFromAppsScript(action, params = {}) {
-      try {
-        const payload = { action, ...params };
-        const response = await fetch(APPS_SCRIPT_URL + '?action=' + action);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error('Error fetching from Apps Script:', error);
-        throw error;
-      }
-    }
-
-    async function postToAppsScript(action, params = {}) {
-      try {
-        const payload = { action, ...params };
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          redirect: 'follow',
-          body: JSON.stringify(payload)
-        });
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error('Error posting to Apps Script:', error);
-        throw error;
-      }
-    }
-
-    async function loadAllData() {
-      try {
-        const data = await fetchFromAppsScript('getAll');
-        const lineItems = (data.lineItems || []).map(item => ({
-          ...item,
-          monthly: [item.jan, item.feb, item.mar, item.apr, item.may, item.jun,
-                    item.jul, item.aug, item.sep, item.oct, item.nov, item.dec].map(Number)
-        }));
-        const allocationsData = (data.allocations || []);
-        const allocations = {};
-        allocationsData.forEach(a => {
-          allocations[a.brand_id] = [a.jan, a.feb, a.mar, a.apr, a.may, a.jun,
-                                     a.jul, a.aug, a.sep, a.oct, a.nov, a.dec].map(Number);
-        });
-        const stormConfigs = {};
-        (data.stormConfig || []).forEach(s => {
-          stormConfigs[s.brand_id] = s.months ? s.months.split(',').map(Number) : [4,5,6,7,8];
-        });
-        BRANDS = BRAND_META.map(meta => {
-          const vendors = lineItems.filter(li => li.brand_id === meta.id);
-          const monthlyBudget = Array(12).fill(0);
-          vendors.filter(v => v.status !== 'unapproved').forEach(v => {
-            v.monthly.forEach((val, i) => monthlyBudget[i] += val);
-          });
-          const stormMonths = stormConfigs[meta.id] || [4,5,6,7,8];
-          return {
-            id: meta.id, name: meta.name, color: meta.color,
-            vendors, monthlyBudget,
-            annualBudget: monthlyBudget.reduce((a,b) => a+b, 0),
-            stormMonths,
-            allocations: allocations[meta.id] || Array(12).fill(0)
-          };
-        });
-        lastUpdated = new Date();
-        render();
-      } catch (error) {
-        console.error('Error loading data:', error);
-        showToast('Error loading data: ' + error.message, 'error');
-      }
-    }
-
-    function renderLoadingScreen() {
-      const app = document.getElementById('app');
-      app.innerHTML = '<div class="loading-message">Loading dashboard...</div>';
-    }
-
-    async function render() {
-      if (!BRANDS.length) return;
-      const brand = BRANDS[activeBrand];
-      const d = compute(brand);
-      const m = selectedMonth;
-      const storm = getStorm(brand);
-      const isStorm = storm.includes(m);
-      const notes = await loadNotes(brand.id);
-      const app = document.getElementById('app');
-
-      let html = '';
-      html += '<header><div>';
-      html += '<h1><em>USP</em> Marketing Budget</h1>';
-      html += '<div style="font-size:13px;color:var(--muted);margin-top:3px">Branch-level budget management &bull; 2026</div>';
-      html += '</div><div class="header-r">';
-      if(isStorm) html += '<span class="badge badge-storm">&#9889; Storm Season</span>';
-      html += '<div class="header-controls">';
-      if(lastUpdated) {
-        const timeStr = lastUpdated.toLocaleTimeString();
-        html += '<span class="header-timestamp">Last updated: ' + timeStr + '</span>';
-      }
-      html += '<button class="btn btn-outline btn-sm" onclick="refreshData()" title="Refresh data">&#8635; Refresh</button>';
-      if(!BRANDS.some(b => b.vendors.length > 0)) {
-        html += '<button class="btn btn-primary btn-sm" onclick="seedData()" title="Seed with sample data">&#127793; Seed Data</button>';
-      }
-      html += '</div>';
-      html += '<div class="month-picker">';
-      MONTHS.forEach((mo,i)=>{
-        const isSt=storm.includes(i);
-        html += '<button class="month-btn '+(i===m?'active':'')+' '+(isSt?'storm-month':'')+'" data-mo="'+i+'" title="'+mo+' 2026'+(isSt?' (Storm)':'')+'">'+mo+'</button>';
-      });
-      html += '</div></div></header>';
-
-      html += '<div class="tabs">';
-      BRANDS.forEach((b,i)=>{
-        html += '<button class="tab '+(i===activeBrand?'active':'')+'" data-idx="'+i+'"><span class="tab-dot" style="background:'+b.color+'"></span>'+b.name+'</button>';
-      });
-      html += '</div>';
-
-      html += '<div class="view-tabs">';
-      html += '<button class="view-tab '+(activeView==='budget'?'active':'')+'" data-view="budget">Budget</button>';
-      html += '<button class="view-tab '+(activeView==='allocation'?'active':'')+'" data-view="allocation">Allocation</button>';
-      html += '</div>';
-
-      if(activeView === 'allocation') {
-        html += renderAllocationView(brand, d);
-      } else {
-        html += renderBudgetView(brand, d, m, storm, notes);
-      }
-
-      if(modal === 'addVendor') html += renderAddModal(brand);
-      if(modal === 'editVendor') html += renderEditModal(brand);
-      app.innerHTML = html;
-      bindAll();
-    }
-
-    function renderBudgetView(brand, d, m, storm, notes) {
-      const sc = getColor(d.ratio);
-      const diff = d.spent - d.priorSpent;
-      const diffCls = diff>0?'comp-up':diff<0?'comp-down':'comp-flat';
-      const diffTxt = diff>0?'&#9650; +'+fmt(diff)+' vs '+MONTHS[m-1]:diff<0?'&#9660; '+fmt(Math.abs(diff))+' less':'Flat';
-      const sorted = [...brand.vendors].map((v,i)=>({...v,_idx:i}));
-      const cats = {};
-      brand.vendors.forEach((v,vi)=>{if(!cats[v.category])cats[v.category]=[];cats[v.category].push({...v,_idx:vi})});
-
-      let h = '<div class="fade-in">';
-      h += '<div class="kpi-grid">';
-      const allocVal = d.allocMonth > 0 ? fmt(d.allocMonth) : '<span style="font-size:14px;color:var(--muted)">Not set</span>';
-      const allocSub2 = d.allocMonth > 0 ? 'Approved by corporate' : 'Set in Allocation tab';
-      h += '<div class="kpi" style="border-left:3px solid var(--accent)"><div class="kpi-label">'+MONTHS[m]+' Allocated</div><div class="kpi-value">'+allocVal+'</div><div class="kpi-sub">'+allocSub2+'</div></div>';
-      h += '<div class="kpi"><div class="kpi-label">Planned</div><div class="kpi-value">'+fmt(d.budget)+'</div><div class="kpi-sub">'+(m>0?'<span class="comp '+diffCls+'">'+diffTxt+'</span>':'First month')+'</div></div>';
-      const hasAlloc = d.allocMonth > 0;
-      const remAmt = hasAlloc ? d.allocMonth - d.budget : d.remaining;
-      const remClr = hasAlloc ? (remAmt >= 0 ? 'var(--green)' : 'var(--red)') : sc.bar;
-      const remSub = hasAlloc ? (remAmt >= 0 ? fmt(remAmt)+' under allocation' : fmt(Math.abs(remAmt))+' over allocation') : (d.isFuture ? 'Not yet started' : pct(1-d.ratio)+' left');
-      h += '<div class="kpi"><div class="kpi-label">Remaining</div><div class="kpi-value" style="color:'+remClr+'">'+fmt(remAmt)+'</div><div class="kpi-sub">'+remSub+'</div></div>';
-      const trialCount = sorted.filter(v=>v.status==='trial').length;
-      h += '<div class="kpi" style="border-left:3px solid var(--orange)"><div class="kpi-label" style="color:var(--orange)">Trial Spend &bull; '+MONTHS[m]+'</div><div class="kpi-value" style="color:var(--orange)">'+fmt(d.trialMonth)+'</div><div class="kpi-sub">'+fmt(d.trialAnnual)+' annual &bull; '+trialCount+' item'+(trialCount!==1?'s':'')+'</div></div>';
-      h += '</div>';
-
-      h += '<div class="card"><div class="card-title">'+MONTHS[m]+' Budget Utilization '+(d.isFuture?'(Planned)':d.isCurrent?'(In Progress)':'(Final)')+'</div>';
-      h += '<div class="prog-bg"><div class="prog-fill" style="width:'+Math.min(d.ratio*100,100)+'%;background:'+(d.isFuture?'#e2e5ec':sc.bar)+'"></div></div>';
-      h += '<div class="prog-label"><span style="color:'+(d.isFuture?'var(--muted)':sc.bar)+'">'+(d.isFuture?'0% (future)':pct(d.ratio)+' used')+'</span><span>'+(d.isFuture?fmt(d.budget)+' planned':fmt(d.spent)+' of '+fmt(d.budget))+'</span></div></div>';
-
-      h += '<div class="card" style="padding:16px"><div class="card-title"><span>Budget Line Items - Full Year 2026</span>';
-      h += '<button class="btn btn-primary btn-sm" onclick="openAddModal()" style="margin-left:auto">+ Add Line Item</button>';
-      h += '</div><div class="table-wrap"><table class="vtable"><thead><tr><th style="width:30px"></th><th style="min-width:180px">Vendor / Campaign</th><th>Cat</th><th>Status</th>';
-      h += '<th class="q-header" colspan="3">Q1</th><th class="q-header" colspan="3">Q2</th><th class="q-header" colspan="3">Q3</th><th class="q-header" colspan="3">Q4</th>';
-      h += '<th class="num">Annual</th><th></th></tr><tr><th></th><th></th><th></th><th></th>';
-      MONTHS.forEach((mo,i)=>{h+='<th class="num '+(i===m?'month-current':i<m?'month-past':'')+'" style="font-size:9px;min-width:58px">'+mo+'</th>';});
-      h += '<th class="num"></th><th style="min-width:70px"></th></tr></thead><tbody>';
-
-      sorted.forEach((v,si)=>{
-        const rowCls=v.status==='ended'?'ended-row':v.status==='trial'?'trial-row':v.status==='unapproved'?'unapproved-row':'';
-        const annual=v.monthly.reduce((a,b)=>a+b,0);
-        h += '<tr class="'+rowCls+'">';
-        h += '<td><span class="drag-handle">&#8942;&#8942;</span></td>';
-        h += '<td><div class="vendor-name">'+v.vendor+'</div><div class="pub-camp">'+v.publisher+' &bull; '+v.campaign+'</div></td>';
-        h += '<td><span class="cat-dot" style="background:'+(CAT_COLORS[v.category]||'#94a3b8')+'"></span><span style="font-size:10px">'+v.category+'</span></td>';
-        h += '<td>'+statusHTML(v)+'</td>';
-        v.monthly.forEach((val,mi)=>{
-          const cls='num'+(mi===selectedMonth?' month-current':mi<selectedMonth?' month-past':'');
-          if(mi>=TODAY_MONTH){
-            h += '<td class="'+cls+'"><span class="editable" data-v="'+v._idx+'" data-m="'+mi+'">'+(val>0?fmt(val):'-')+'</span></td>';
-          } else {
-            h += '<td class="'+cls+'">'+(val>0?fmt(val):'-')+'</td>';
-          }
-        });
-        h += '<td class="num" style="font-weight:700">'+fmt(annual)+'</td>';
-        h += '<td style="text-align:right;white-space:nowrap">';
-        h += '<button class="btn btn-outline btn-xs" onclick="openEditModal('+v._idx+')">Edit</button> ';
-        h += '<button class="btn btn-danger btn-xs" onclick="deleteVendor('+v._idx+')">&#10005;</button>';
-        h += '</td></tr>';
-      });
-
-      h += '<tr class="total-row"><td colspan="4" style="text-align:right;font-size:11px">TOTAL</td>';
-      MONTHS.forEach((_,mi)=>{
-        const t=brand.vendors.filter(v=>v.status!=='unapproved').reduce((s,v)=>s+v.monthly[mi],0);
-        h += '<td class="num '+(mi===selectedMonth?'month-current':'')+'">'+fmt(t)+'</td>';
-      });
-      h += '<td class="num">'+fmt(brand.annualBudget)+'</td><td></td></tr>';
-
-      const allocArr = d.allocArr;
-      if(allocArr.some(v=>v>0)){
-        h += '<tr style="background:var(--accent-lt);font-size:11px;color:var(--accent)"><td colspan="4" style="text-align:right;font-weight:700">ALLOCATION</td>';
-        MONTHS.forEach((_,mi)=>{
-          const a=allocArr[mi]||0;
-          h += '<td class="num">'+(a>0?fmt(a):'-')+'</td>';
-        });
-        h += '<td class="num" style="font-weight:700">'+fmt(d.allocAnnual)+'</td><td></td></tr>';
-        h += '<tr style="font-size:10px"><td colspan="4" style="text-align:right;font-weight:600;color:var(--muted)">VARIANCE</td>';
-        MONTHS.forEach((_,mi)=>{
-          const a=allocArr[mi]||0;
-          const s=brand.vendors.filter(v=>v.status!=='unapproved').reduce((s,v)=>s+v.monthly[mi],0);
-          const diff=a-s;
-          const clr=a===0?'var(--muted)':diff>=0?'var(--green)':'var(--red)';
-          h += '<td class="num" style="color:'+clr+'">'+(a>0?(diff>=0?'+':'')+fmt(diff):'-')+'</td>';
-        });
-        const avTot = d.allocAnnual - brand.annualBudget;
-        h += '<td class="num" style="font-weight:700;color:'+(avTot>=0?'var(--green)':'var(--red)')+'">'+(avTot>=0?'+':'')+fmt(avTot)+'</td><td></td></tr>';
-      }
-
-      h += '<tr style="background:#f0f4ff;font-weight:600;font-size:11px"><td colspan="4" style="text-align:right">QUARTER TOTAL</td>';
-      d.qTotals.forEach(qt=>{
-        h += '<td class="num" colspan="3" style="text-align:center">'+fmt(qt)+'</td>';
-      });
-      h += '<td></td><td></td></tr>';
-      h += '<tr style="font-size:10px;color:var(--muted)"><td colspan="4" style="text-align:right;font-style:italic">'+brand.vendors.length+' items &bull; '+brand.vendors.filter(v=>v.status==='active').length+' active &bull; '+brand.vendors.filter(v=>v.status==='trial').length+' trial &bull; '+brand.vendors.filter(v=>v.status==='unapproved').length+' unapproved &bull; '+brand.vendors.filter(v=>v.status==='ended').length+' ended</td><td colspan="14"></td></tr>';
-      h += '</tbody></table></div></div>';
-
-      h += '<div class="two-col"><div class="card"><div class="card-title">Monthly Budget Trend</div><div class="mini-chart">';
-      const mx=Math.max(...brand.monthlyBudget);
-      brand.monthlyBudget.forEach((v,i)=>{
-        const ht=Math.max((v/mx)*100,4);
-        const isSel=i===selectedMonth;
-        const clr=isSel?brand.color:i<TODAY_MONTH?brand.color+'88':i===TODAY_MONTH?brand.color+'cc':'#e2e5ec';
-        h += '<div class="mini-bar '+(isSel?'current':'')+'" style="height:'+ht+'%;background:'+clr+'" title="'+MONTHS[i]+': '+fmt(v)+'"></div>';
-      });
-      h += '</div><div class="chart-labels">';
-      MONTHS.forEach((mo,i)=>{h+='<span style="'+(i===selectedMonth?'font-weight:700;color:var(--text)':'')+'">'+mo+'</span>';});
-      h += '</div><div style="margin-top:14px;font-size:13px">';
-      h += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Prior month spend</span><strong>'+fmt(d.priorSpent)+'</strong></div>';
-      h += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">YTD spend</span><strong>'+fmt(d.ytdSpent)+'</strong></div>';
-      h += '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--muted)">YTD budget</span><strong>'+fmt(d.ytdBudget)+'</strong></div>';
-      h += '</div></div>';
-
-      h += '<div class="card"><div class="card-title">Spend by Category - '+MONTHS[m]+'</div>';
-      Object.entries(cats).forEach(([cat,vendors])=>{
-        const catTotal=vendors.reduce((s,v)=>s+v.monthly[m],0);
-        const catAnnual=vendors.reduce((s,v)=>s+v.monthly.reduce((a,b)=>a+b,0),0);
-        if(catAnnual===0) return;
-        const barW=d.budget>0?Math.min((catTotal/d.budget)*100,100):0;
-        h += '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px"><span><span class="cat-dot" style="background:'+(CAT_COLORS[cat]||'#94a3b8')+'"></span>'+cat+'</span><span>'+fmt(catTotal)+'</span></div>';
-        h += '<div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="height:100%;width:'+barW+'%;background:'+(CAT_COLORS[cat]||'#94a3b8')+';border-radius:3px"></div></div>';
-        h += '<div style="font-size:10px;color:var(--muted);margin-top:2px">'+vendors.length+' item'+(vendors.length>1?'s':'')+' | Annual: '+fmt(catAnnual)+'</div></div>';
-      });
-      h += '</div></div>';
-
-      h += '<div class="two-col"><div class="card"><div class="card-title">Branch Notes</div>';
-      h += '<div style="display:flex;gap:8px;margin-bottom:12px"><textarea class="notes-area" id="notesArea" placeholder="Add a note..." style="min-height:50px;flex:1" required></textarea>';
-      h += '<button class="btn btn-primary" onclick="saveNote()" style="align-self:flex-end">Save</button>';
-      h += '</div>';
-      h += '<div id="notesList" style="max-height:250px;overflow-y:auto">';
-      if(notes.length===0) h += '<div style="font-size:12px;color:var(--muted);padding:8px">No notes yet.</div>';
-      notes.forEach((n,i)=>{
-        h += '<div class="note-entry"><div class="note-ts"><span>'+n.ts+'</span>';
-        h += '<button class="note-del" onclick="deleteNoteById(\''+n.id+'\')" title="Delete note">&#10005;</button>';
-        h += '</div>';
-        h += '<div class="note-text">'+n.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
-      });
-      h += '</div></div>';
-
-      h += '<div class="card"><div class="card-title">Storm Season Calendar <span style="font-weight:400;font-size:10px;color:var(--muted)">(click to toggle)</span></div><div class="storm-cal">';
-      MONTHS.forEach((mo,i)=>{
-        const isS=storm.includes(i);
-        const isCur=i===m;
-        const ooh=brand.vendors.filter(v=>v.category==='OOH').reduce((s,v)=>s+v.monthly[i],0);
-        h += '<div class="storm-cal-cell '+(isS?'is-storm':'not-storm')+'" data-storm="'+i+'" style="'+(isCur?'outline:2px solid var(--accent);outline-offset:-1px':'')+'">';
-        h += '<div style="font-weight:600">'+mo+'</div>';
-        h += '<div style="font-size:9px;color:var(--muted);margin-top:1px">'+(ooh>0?fmt(ooh):'-')+'</div>';
-        h += (isS?'<div style="font-size:8px;margin-top:1px">&#9889;</div>':'<div style="font-size:8px;margin-top:1px;opacity:.3">-</div>');
-        h += '</div>';
-      });
-      h += '</div></div></div>';
-      return h;
-    }
-
-    function renderAllocationView(brand, d) {
-      let h = '<div class="fade-in"><div class="card"><div class="card-title">'+MONTHS[selectedMonth]+' Allocation &amp; Budget vs. Approved</div>';
-      h += '<div class="alloc-grid">';
-      const allocArr = d.allocArr || Array(12).fill(0);
-      MONTHS.forEach((mo, mi) => {
-        const monthBudget = brand.monthlyBudget[mi];
-        const monthAlloc = allocArr[mi] || 0;
-        const monthDiff = monthAlloc - monthBudget;
-        const subText = monthAlloc > 0 ? (monthDiff >= 0 ? fmt(monthDiff)+' available' : fmt(Math.abs(monthDiff))+' over') : 'Not set';
-        h += '<div class="alloc-cell '+(mi===selectedMonth?'current':'')+'">';
-        h += '<div class="alloc-cell-label">'+mo+'</div>';
-        h += '<input type="number" class="alloc-cell-input" data-alloc-month="'+mi+'" value="'+(monthAlloc || 0)+'" />';
-        h += '<div class="alloc-cell-sub '+(monthAlloc===0?'':(monthDiff>=0?'under':'over'))+'">'+subText+'</div>';
-        h += '</div>';
-      });
-      h += '</div>';
-      h += '<div class="alloc-summary">';
-      h += '<div class="alloc-summary-item"><div class="alloc-summary-label">Total Allocated</div><div class="alloc-summary-value">'+fmt(d.allocAnnual)+'</div></div>';
-      h += '<div class="alloc-summary-item"><div class="alloc-summary-label">Total Planned</div><div class="alloc-summary-value">'+fmt(brand.annualBudget)+'</div></div>';
-      h += '<div class="alloc-summary-item"><div class="alloc-summary-label">Annual Variance</div><div class="alloc-summary-value" style="color:'+(d.annualVariance>=0?'var(--green)':'var(--red)')+'">'+(d.annualVariance>=0?'+':'')+fmt(d.annualVariance)+'</div></div>';
-      h += '<div class="alloc-summary-item"><div class="alloc-summary-label">Status</div><div class="alloc-summary-value" style="font-size:14px;color:'+(d.annualVariance>=0?'var(--green)':'var(--red)')+'">'+(d.annualVariance>=0?'Under':'Over')+'</div></div>';
-      h += '</div>';
-      h += '<button class="btn btn-primary" style="margin-top:16px" onclick="saveAllocationData()">Save Allocation</button>';
-      h += '</div></div>';
-      return h;
-    }
-
-    function renderAddModal(brand) {
-      let h = '<div class="modal-overlay" onclick="if(event.target===this) { modal=null; render(); }"><div class="modal">';
-      h += '<h3>Add Line Item</h3>';
-      h += '<div class="form-row"><div class="form-group"><label>Vendor Name</label><input type="text" id="formVendor" placeholder="e.g., SCORPION"></div>';
-      h += '<div class="form-group"><label>Publisher</label><input type="text" id="formPublisher" placeholder="e.g., Google"></div></div>';
-      h += '<div class="form-row"><div class="form-group"><label>Campaign</label><input type="text" id="formCampaign" placeholder="e.g., Advertising"></div>';
-      h += '<div class="form-group"><label>Category</label><select id="formCategory"><option>DIGITAL</option><option>SOCIAL</option><option>OOH</option><option>DIRECT MAIL</option><option>DIRECTORY</option><option>TECHNOLOGY</option><option>EMAIL</option><option>OTHER</option></select></div></div>';
-      h += '<div class="form-row"><div class="form-group"><label>Status</label><select id="formStatus"><option value="active">Active</option><option value="trial">Trial</option><option value="ended">Ended</option><option value="unapproved">Unapproved</option></select></div>';
-      h += '<div class="form-group"><label>Status Note</label><input type="text" id="formStatusNote" placeholder="e.g., Testing ROI"></div></div>';
-      h += '<div class="form-group"><label>Monthly Budget (csv)</label><input type="text" id="formMonthly" placeholder="1000,1000,1000..." value="0,0,0,0,0,0,0,0,0,0,0,0"></div>';
-      h += '<div class="modal-actions"><button class="btn" onclick="modal=null; render();">Cancel</button><button class="btn btn-primary" onclick="submitAddVendor();">Add</button></div>';
-      h += '</div></div>';
-      return h;
-    }
-
-    function renderEditModal(brand) {
-      const v = brand.vendors[editingVendorIdx];
-      if (!v) return '';
-      let h = '<div class="modal-overlay" onclick="if(event.target===this) { modal=null; editingVendorIdx=null; render(); }"><div class="modal">';
-      h += '<h3>Edit Line Item</h3>';
-      h += '<div class="form-row"><div class="form-group"><label>Vendor Name</label><input type="text" id="formVendor" value="'+v.vendor+'"></div>';
-      h += '<div class="form-group"><label>Publisher</label><input type="text" id="formPublisher" value="'+v.publisher+'"></div></div>';
-      h += '<div class="form-row"><div class="form-group"><label>Campaign</label><input type="text" id="formCampaign" value="'+v.campaign+'"></div>';
-      h += '<div class="form-group"><label>Category</label><select id="formCategory"><option>DIGITAL</option><option>SOCIAL</option><option>OOH</option><option>DIRECT MAIL</option><option>DIRECTORY</option><option>TECHNOLOGY</option><option>EMAIL</option><option>OTHER</option></select></div></div>';
-      h += '<div class="form-row"><div class="form-group"><label>Status</label><select id="formStatus"><option value="active">Active</option><option value="trial">Trial</option><option value="ended">Ended</option><option value="unapproved">Unapproved</option></select></div>';
-      h += '<div class="form-group"><label>Status Note</label><input type="text" id="formStatusNote" value="'+(v.status_note || '')+'"></div></div>';
-      h += '<div class="form-group"><label>Monthly Budget</label><input type="text" id="formMonthly" value="'+v.monthly.join(',')+'"></div>';
-      h += '<div class="modal-actions"><button class="btn" onclick="modal=null; editingVendorIdx=null; render();">Cancel</button><button class="btn btn-primary" onclick="submitEditVendor();">Save</button></div>';
-      h += '</div></div>';
-      setTimeout(() => {
-        $('#formCategory').value = v.category;
-        $('#formStatus').value = v.status;
-      }, 0);
-      return h;
-    }
-
-    function bindAll() {
-      $$('.month-btn').forEach(btn => {
-        btn.onclick = () => { selectedMonth = parseInt(btn.dataset.mo); render(); };
-      });
-      $$('.tab').forEach(btn => {
-        btn.onclick = () => { activeBrand = parseInt(btn.dataset.idx); render(); };
-      });
-      $$('.view-tab').forEach(btn => {
-        btn.onclick = () => { activeView = btn.dataset.view; render(); };
-      });
-      $$('.editable').forEach(el => {
-        el.onclick = (e) => {
-          const vi = parseInt(e.target.dataset.v);
-          const mi = parseInt(e.target.dataset.m);
-          const val = BRANDS[activeBrand].vendors[vi].monthly[mi];
-          const inp = document.createElement('input');
-          inp.type = 'number';
-          inp.className = 'edit-input';
-          inp.value = val || 0;
-          inp.onblur = () => {
-            BRANDS[activeBrand].vendors[vi].monthly[mi] = parseInt(inp.value) || 0;
-            updateLineItem(BRANDS[activeBrand].vendors[vi].id, BRANDS[activeBrand].vendors[vi]);
-          };
-          inp.onkeyup = (ke) => {
-            if (ke.key === 'Enter') inp.blur();
-            if (ke.key === 'Escape') render();
-          };
-          e.target.replaceWith(inp);
-          inp.focus();
-          inp.select();
+        const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC'];
+        const LOCATIONS = ['LEVEL', 'TITAN', 'TRADEMARK', 'PAPPAS', 'PRO'];
+        const CATEGORIES = {
+            'PROSPECT': '#007AFF',
+            'TECHNOLOGY': '#8E8E93',
+            'ROOFING': '#FF9500',
+            'ALL': '#AF52DE'
         };
-      });
-      $$('.storm-cal-cell').forEach(cell => {
-        cell.onclick = async () => {
-          const idx = parseInt(cell.dataset.storm);
-          const brand = BRANDS[activeBrand];
-          const storm = getStorm(brand);
-          const pos = storm.indexOf(idx);
-          if (pos >= 0) { storm.splice(pos, 1); } else { storm.push(idx); }
-          await saveStorm(brand.id, storm);
+
+        // ── API Helpers ──
+        async function fetchAPI(action) {
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                const r = await fetch(APPS_SCRIPT_URL + '?action=' + action, {
+                    redirect: 'follow',
+                    signal: controller.signal
+                });
+                clearTimeout(timeout);
+                return await r.json();
+            } catch (e) {
+                console.error('API fetch error:', e);
+                return null;
+            }
+        }
+
+        async function postAPI(action, payload) {
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                const r = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action, ...payload }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeout);
+                return await r.json();
+            } catch (e) {
+                console.error('API post error:', e);
+                return null;
+            }
+        }
+
+        // Convert API line item to React format
+        function apiItemToReact(apiItem) {
+            return {
+                id: apiItem.id,
+                vendor: (apiItem.vendor || '').toUpperCase(),
+                publisher: (apiItem.publisher || '').toUpperCase(),
+                campaign: apiItem.campaign || '',
+                media: (apiItem.media || apiItem.category || '').toUpperCase(),
+                category: (apiItem.category || 'ALL').toUpperCase(),
+                status: apiItem.status || 'Active',
+                sort_order: apiItem.sort_order || 0,
+                months: MONTH_KEYS.map(k => parseInt(apiItem[k]) || 0)
+            };
+        }
+
+        // Convert React months array to API month fields
+        function monthsToAPI(months) {
+            const obj = {};
+            MONTH_KEYS.forEach((k, i) => { obj[k] = months[i] || 0; });
+            return obj;
+        }
+
+        // ── Embedded fallback data ──
+        const EMBEDDED_DATA = {
+            LEVEL: {
+                allocations: [17000, 32700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 22700, 22700],
+                revenue: 12000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising (Roof)', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 500, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 2000, 2000, 4000, 4000, 2000, 0, 2000, 2000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 4000, 4000, 4000, 4000, 2000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'NEXTDOOR', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Trial', months: [0, 0, 350, 350, 350, 350, 350, 350, 350, 350, 0, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [1000, 1000, 3000, 1000, 3000, 3000, 1000, 0, 3000, 1000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising (Roof)', media: 'SOCIAL', category: 'ROOFING', status: 'Active', months: [2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 0, 0] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250] },
+                    { vendor: '', publisher: 'GOOGLE', campaign: 'GBP', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] },
+                    { vendor: 'OUTFRONT', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 7500, 0, 7500, 0, 7500, 7500, 7500, 0, 7500, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 3250, 0, 3250, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: 'SERVICE TITAN', publisher: '', campaign: 'CRM', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 1500, 0, 1500, 0, 1500, 0, 1500, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Mailers', media: 'DIRECT MAIL', category: 'ALL', status: 'Active', months: [0, 0, 0, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [0, 0, 2000, 0, 4000, 0, 0, 0, 4000, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 0, 500, 0, 500, 0, 500, 0, 0, 0] }
+                ]
+            },
+            TITAN: {
+                allocations: [27200, 27200, 57200, 27200, 27200, 27200, 27200, 27200, 27200, 27200, 27200, 27200],
+                revenue: 8000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [9300, 9300, 9300, 9300, 9300, 9300, 9300, 9300, 9300, 2000, 2000, 2000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 4000, 2000, 4000, 2000, 2000, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 2000, 2000, 4000, 4000, 2000, 2000] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 4000, 2000, 4000, 2000, 2000, 0] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising (Roof)', media: 'SOCIAL', category: 'ROOFING', status: 'Active', months: [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 20000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 0, 0, 0, 0, 0, 5000, 0, 5000, 5000, 5000] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 2400, 0, 0, 0, 2400, 0, 0, 0, 2400, 0] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [5000, 5000, 5000, 0, 0, 0, 0, 0, 0, 5000, 5000, 5000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 400, 1500, 0, 0, 0, 1500, 0, 0, 0, 1500, 0] }
+                ]
+            },
+            TRADEMARK: {
+                allocations: [50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100],
+                revenue: 20000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising (Roof)', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [5000, 5000, 5000, 5000, 5000, 10000, 5000, 5000, 5000, 5000, 5000, 10000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3000, 3000, 5000, 5000, 5000, 8000, 3000, 3000, 5000, 5000, 3000, 3000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3000, 3000, 5000, 5000, 5000, 8000, 3000, 5000, 5000, 3000, 3000, 5000] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'NEXTDOOR', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Trial', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 10000, 3500, 3500, 3500, 3500, 3500, 10000] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0, 5000, 0] },
+                    { vendor: '', publisher: '', campaign: 'Mailers', media: 'DIRECT MAIL', category: 'ALL', status: 'Active', months: [0, 0, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 6000] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 1500, 0, 1500, 0, 1500, 0, 1500, 0, 1500, 0] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [5000, 5000, 5000, 5000, 0, 0, 0, 0, 0, 5000, 5000, 5000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 0, 500, 0, 500, 0, 500, 0, 500, 0] }
+                ]
+            },
+            PAPPAS: {
+                allocations: [16000, 16000, 36000, 21000, 21000, 21000, 21000, 21000, 21000, 21000, 21000, 21000],
+                revenue: 13000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 3000, 3000, 3000, 5000, 1500, 1500, 3000, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 4000, 2000, 2000, 4000, 2000, 2000, 2000] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 3000, 3000, 3000, 5000, 1500, 1500, 3000, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising (Roof)', media: 'SOCIAL', category: 'ROOFING', status: 'Active', months: [2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'GOOGLE', campaign: 'GBP', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [0, 500, 500, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 7000, 0, 0, 0, 7000, 0, 0, 7000, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 3000, 0, 0, 0, 0, 0, 0, 0, 3000, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 2000, 0, 0, 0, 2000, 0, 0, 0, 2000, 0] },
+                    { vendor: '', publisher: '', campaign: 'Mailers', media: 'DIRECT MAIL', category: 'ALL', status: 'Active', months: [0, 0, 2000, 2000, 2000, 2000, 0, 2000, 0, 2000, 2000, 2000] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [2000, 2000, 2000, 0, 0, 0, 0, 0, 0, 0, 2000, 2000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 0, 500, 0, 500, 0, 500, 0, 500, 0] }
+                ]
+            },
+            PRO: {
+                allocations: [25700, 25700, 45700, 35700, 35700, 30700, 30700, 30700, 30700, 30700, 30700, 30700],
+                revenue: 34000000,
+                items: [
+                    { vendor: 'MARCHEX', publisher: 'MARCHEX', campaign: 'Call Tracking', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 6000, 6000, 8000, 12000, 6000, 8000, 12000, 6000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [0, 0, 4000, 4000, 4000, 6000, 4000, 6000, 8000, 6000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [0, 0, 2500, 2500, 4000, 6000, 2500, 4000, 6000, 4000, 0, 0] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'GOOGLE', campaign: 'GBP', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [0, 0, 500, 500, 500, 500, 500, 500, 500, 500, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 7500, 7500, 7500, 0, 7500, 0, 7500, 7500, 14000, 14000] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0, 8500, 8500] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [0, 0, 10000, 5000, 0, 0, 0, 5000, 0, 0, 5000, 5000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 500, 500, 0, 500, 0, 500, 0, 0, 0] }
+                ]
+            }
         };
-      });
-    }
 
-    async function loadNotes(brandId) {
-      try {
-        const data = await fetchFromAppsScript('getNotes', { brand_id: brandId });
-        return (data.notes || []).map(n => ({
-          id: n.id,
-          text: n.text,
-          ts: new Date(n.created_at).toLocaleString()
-        }));
-      } catch (error) {
-        console.error('Error loading notes:', error);
-        return [];
-      }
-    }
+        function BudgetDashboard() {
+            const [activeTab, setActiveTab] = useState('budget');
+            const [selectedLocation, setSelectedLocation] = useState('LEVEL');
+            const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+            const [showSettingsModal, setShowSettingsModal] = useState(false);
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [draggedRowIndex, setDraggedRowIndex] = useState(null);
+            const [dropTarget, setDropTarget] = useState(null);
+            const [googleSheetUrls, setGoogleSheetUrls] = useState({});
+            const [dataSource, setDataSource] = useState('embedded');
+            const [locationData, setLocationData] = useState(EMBEDDED_DATA);
+            const [items, setItems] = useState(EMBEDDED_DATA['LEVEL'].items.map(i => ({ ...i })));
+            const [syncStatus, setSyncStatus] = useState('loading');
+            const selectedLocationRef = useRef('LEVEL');
 
-    async function addNote(brandId, text) {
-      if (!text.trim()) return;
-      try {
-        await postToAppsScript('addNote', { brand_id: brandId, text });
-        await loadAllData();
-      } catch (error) {
-        showToast('Error adding note: ' + error.message, 'error');
-      }
-    }
+            useEffect(() => {
+                selectedLocationRef.current = selectedLocation;
+            }, [selectedLocation]);
 
-    async function deleteNote(id) {
-      try {
-        await postToAppsScript('deleteNote', { id });
-        await loadAllData();
-      } catch (error) {
-        showToast('Error deleting note: ' + error.message, 'error');
-      }
-    }
+            // ── Load from Apps Script on mount ──
+            useEffect(() => {
+                loadFromBackend();
+            }, []);
 
-    async function updateLineItem(id, vendor) {
-      try {
-        const monthsObj = {};
-        const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        monthNames.forEach((name, i) => { monthsObj[name] = vendor.monthly[i]; });
-        await postToAppsScript('updateLineItem', {
-          id, vendor: vendor.vendor, publisher: vendor.publisher,
-          campaign: vendor.campaign, category: vendor.category,
-          status: vendor.status, status_note: vendor.status_note,
-          ...monthsObj
-        });
-        await loadAllData();
-      } catch (error) {
-        showToast('Error updating line item: ' + error.message, 'error');
-      }
-    }
+            async function loadFromBackend() {
+                setSyncStatus('syncing');
+                const data = await fetchAPI('getAll');
+                if (!data || data.error) {
+                    console.log('Backend unavailable, using embedded data');
+                    setSyncStatus('offline');
+                    return;
+                }
 
-    async function addLineItem(brandId, vendor) {
-      try {
-        const monthsObj = {};
-        const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        monthNames.forEach((name, i) => { monthsObj[name] = vendor.monthly[i]; });
-        await postToAppsScript('addLineItem', {
-          brand_id: brandId, vendor: vendor.vendor, publisher: vendor.publisher,
-          campaign: vendor.campaign, category: vendor.category,
-          status: vendor.status, status_note: vendor.status_note,
-          sort_order: BRANDS[activeBrand].vendors.length,
-          ...monthsObj
-        });
-        modal = null;
-        await loadAllData();
-      } catch (error) {
-        showToast('Error adding line item: ' + error.message, 'error');
-      }
-    }
+                try {
+                    const newLocationData = { ...EMBEDDED_DATA };
 
-    async function deleteLineItem(id) {
-      try {
-        await postToAppsScript('deleteLineItem', { id });
-        await loadAllData();
-      } catch (error) {
-        showToast('Error deleting line item: ' + error.message, 'error');
-      }
-    }
+                    // Group line items by brand
+                    if (data.lineItems && data.lineItems.length > 0) {
+                        const byBrand = {};
+                        LOCATIONS.forEach(loc => { byBrand[loc.toLowerCase()] = []; });
 
-    async function saveAllocation(brandId, monthlyArr) {
-      try {
-        const monthsObj = {};
-        const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        monthNames.forEach((name, i) => { monthsObj[name] = monthlyArr[i]; });
-        await postToAppsScript('updateAllocation', { brand_id: brandId, ...monthsObj });
-        showToast('Allocation saved', 'success');
-        await loadAllData();
-      } catch (error) {
-        showToast('Error saving allocation: ' + error.message, 'error');
-      }
-    }
+                        data.lineItems.forEach(item => {
+                            const brand = (item.brand_id || '').toLowerCase();
+                            if (byBrand[brand]) {
+                                byBrand[brand].push(apiItemToReact(item));
+                            }
+                        });
 
-    async function saveStorm(brandId, stormMonths) {
-      try {
-        await postToAppsScript('updateStormConfig', { brand_id: brandId, months: stormMonths.join(',') });
-        await loadAllData();
-      } catch (error) {
-        showToast('Error saving storm config: ' + error.message, 'error');
-      }
-    }
+                        Object.keys(byBrand).forEach(brand => {
+                            byBrand[brand].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+                        });
 
-    function openAddModal() { modal = 'addVendor'; render(); }
-    function openEditModal(idx) { modal = 'editVendor'; editingVendorIdx = idx; render(); }
+                        LOCATIONS.forEach(loc => {
+                            const brandKey = loc.toLowerCase();
+                            if (byBrand[brandKey] && byBrand[brandKey].length > 0) {
+                                newLocationData[loc] = { ...newLocationData[loc], items: byBrand[brandKey] };
+                            }
+                        });
+                    }
 
-    function submitAddVendor() {
-      const vendor = {
-        vendor: $('#formVendor').value,
-        publisher: $('#formPublisher').value,
-        campaign: $('#formCampaign').value,
-        category: $('#formCategory').value,
-        status: $('#formStatus').value,
-        status_note: $('#formStatusNote').value,
-        monthly: $('#formMonthly').value.split(',').map(v => parseInt(v) || 0)
-      };
-      if (!vendor.vendor || !vendor.publisher) { alert('Vendor and Publisher are required'); return; }
-      addLineItem(BRANDS[activeBrand].id, vendor);
-    }
+                    // Load allocations
+                    if (data.allocations && data.allocations.length > 0) {
+                        data.allocations.forEach(alloc => {
+                            const loc = (alloc.brand_id || '').toUpperCase();
+                            if (newLocationData[loc]) {
+                                newLocationData[loc] = {
+                                    ...newLocationData[loc],
+                                    allocations: MONTH_KEYS.map(k => parseInt(alloc[k]) || 0)
+                                };
+                            }
+                        });
+                    }
 
-    function submitEditVendor() {
-      const v = BRANDS[activeBrand].vendors[editingVendorIdx];
-      const vendor = {
-        vendor: $('#formVendor').value,
-        publisher: $('#formPublisher').value,
-        campaign: $('#formCampaign').value,
-        category: $('#formCategory').value,
-        status: $('#formStatus').value,
-        status_note: $('#formStatusNote').value,
-        monthly: $('#formMonthly').value.split(',').map(v => parseInt(v) || 0)
-      };
-      if (!vendor.vendor || !vendor.publisher) { alert('Vendor and Publisher are required'); return; }
-      updateLineItem(v.id, vendor);
-    }
+                    setLocationData(newLocationData);
+                    const currentLoc = selectedLocationRef.current;
+                    setItems(newLocationData[currentLoc].items.map(i => ({ ...i })));
+                    setDataSource('backend');
+                    setSyncStatus('synced');
+                    console.log('Loaded from Apps Script backend');
+                } catch (e) {
+                    console.error('Error parsing backend data:', e);
+                    setSyncStatus('offline');
+                }
+            }
 
-    async function deleteVendor(idx) {
-      if (!confirm('Delete this line item?')) return;
-      const v = BRANDS[activeBrand].vendors[idx];
-      await deleteLineItem(v.id);
-    }
+            // Google Sheets CSV fallback
+            useEffect(() => {
+                if (googleSheetUrls[selectedLocation]) {
+                    fetchGoogleSheetData(googleSheetUrls[selectedLocation], selectedLocation);
+                    const interval = setInterval(() => {
+                        fetchGoogleSheetData(googleSheetUrls[selectedLocation], selectedLocation);
+                    }, 60000);
+                    return () => clearInterval(interval);
+                }
+            }, [googleSheetUrls, selectedLocation]);
 
-    async function saveNote() {
-      const text = $('#notesArea').value;
-      await addNote(BRANDS[activeBrand].id, text);
-      $('#notesArea').value = '';
-    }
+            const fetchGoogleSheetData = (url, location) => {
+                Papa.parse(url, {
+                    download: true, header: false, skipEmptyLines: true,
+                    complete: (results) => { parseGoogleSheetData(results.data, location); },
+                    error: () => console.log('Error loading sheet')
+                });
+            };
 
-    async function deleteNoteById(id) {
-      if (!confirm('Delete note?')) return;
-      await deleteNote(id);
-    }
+            const parseGoogleSheetData = (rows, location) => {
+                if (rows.length < 4) return;
+                const allocations = MONTHS.map((_, i) => parseInt(rows[0][8 + i]) || 0);
+                const revenueTarget = parseInt(rows[1][1]) || 0;
+                const newItems = [];
+                for (let i = 3; i < rows.length; i++) {
+                    const row = rows[i];
+                    newItems.push({
+                        vendor: row[0] || '', publisher: row[1] || '', campaign: row[2] || '',
+                        media: row[3] || '', category: row[4] || 'ALL', status: row[5] || 'Active',
+                        months: MONTHS.map((_, j) => parseInt(row[7 + j]) || 0)
+                    });
+                }
+                setLocationData(prev => ({ ...prev, [location]: { allocations, revenue: revenueTarget, items: newItems } }));
+                if (location === selectedLocation) setItems(newItems);
+                setDataSource('google');
+            };
 
-    function saveAllocationData() {
-      const allocArr = Array(12).fill(0);
-      $$('.alloc-cell-input').forEach(inp => {
-        const mi = parseInt(inp.dataset.allocMonth);
-        allocArr[mi] = parseInt(inp.value) || 0;
-      });
-      saveAllocation(BRANDS[activeBrand].id, allocArr);
-    }
+            // Update items when location changes
+            useEffect(() => {
+                if (locationData[selectedLocation]) {
+                    setItems(locationData[selectedLocation].items.map(i => ({ ...i })));
+                }
+            }, [selectedLocation, locationData]);
 
-    async function refreshData() {
-      await loadAllData();
-      showToast('Data refreshed', 'success');
-    }
+            const currentLocationData = locationData[selectedLocation];
+            const allocation = currentLocationData.allocations[selectedMonth];
+            const revenue = currentLocationData.revenue;
+            const planned = items.reduce((sum, item) => sum + item.months[selectedMonth], 0);
+            const remaining = allocation - planned;
+            const trialItems = items.filter(item => item.status === 'Trial');
+            const trialSpend = trialItems.reduce((sum, item) => sum + item.months[selectedMonth], 0);
+            const annualTrialSpend = trialItems.reduce((sum, item) => sum + item.months.reduce((a, b) => a + b, 0), 0);
 
-    async function seedData() {
-      if (!confirm('Seed dashboard with sample data? This will populate all brands with example vendors.')) return;
-      try {
-        await postToAppsScript('initData', {});
-        showToast('Sample data loaded', 'success');
-        await loadAllData();
-      } catch (error) {
-        showToast('Error seeding data: ' + error.message, 'error');
-      }
-    }
+            // ── Backend save helpers ──
+            const saveItem = async (item, field, value) => {
+                if (!item.id) return;
+                setSyncStatus('syncing');
+                const result = await postAPI('updateLineItem', { id: item.id, field, value });
+                setSyncStatus(result && !result.error ? 'synced' : 'error');
+            };
 
-    window.openAddModal = openAddModal;
-    window.openEditModal = openEditModal;
-    window.deleteVendor = deleteVendor;
-    window.submitAddVendor = submitAddVendor;
-    window.submitEditVendor = submitEditVendor;
-    window.saveNote = saveNote;
-    window.deleteNoteById = deleteNoteById;
-    window.saveAllocationData = saveAllocationData;
-    window.refreshData = refreshData;
-    window.seedData = seedData;
+            const handleStatusChange = (index, status) => {
+                const newItems = [...items];
+                newItems[index].status = status;
+                setItems(newItems);
+                saveItem(newItems[index], 'status', status);
+            };
 
-    async function init() {
-      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL') {
-        const app = document.getElementById('app');
-        app.innerHTML = '<div class="loading-message"><strong>Configuration Required</strong><br><br>Please update the <code>APPS_SCRIPT_URL</code> at the top of the HTML file with your Google Apps Script URL.</div>';
-        return;
-      }
-      renderLoadingScreen();
-      await loadAllData();
-      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-      autoRefreshInterval = setInterval(() => { loadAllData(); }, 30000);
-    }
+            const handleMonthEdit = (rowIndex, monthIndex, value) => {
+                const newItems = [...items];
+                newItems[rowIndex].months[monthIndex] = parseInt(value) || 0;
+                setItems(newItems);
+                saveItem(newItems[rowIndex], MONTH_KEYS[monthIndex], parseInt(value) || 0);
+            };
 
-    init();
-  </script>
+            const handleDragStart = (index) => { setDraggedRowIndex(index); };
+            const handleDragOver = (e, index) => { e.preventDefault(); setDropTarget(index); };
+
+            const handleDrop = (e, targetIndex) => {
+                e.preventDefault();
+                if (draggedRowIndex !== null && draggedRowIndex !== targetIndex) {
+                    const newItems = [...items];
+                    const draggedItem = newItems[draggedRowIndex];
+                    newItems.splice(draggedRowIndex, 1);
+                    newItems.splice(targetIndex, 0, draggedItem);
+                    setItems(newItems);
+                    // Save new sort orders
+                    newItems.forEach((item, idx) => {
+                        if (item.id) {
+                            postAPI('updateLineItem', { id: item.id, field: 'sort_order', value: idx });
+                        }
+                    });
+                }
+                setDraggedRowIndex(null);
+                setDropTarget(null);
+            };
+
+            const addLineItem = async (newItem) => {
+                const item = {
+                    vendor: newItem.vendor || '', publisher: newItem.publisher || '',
+                    campaign: newItem.campaign || '', media: newItem.media || '',
+                    category: newItem.category || 'PROSPECT', status: newItem.status || 'Active',
+                    months: new Array(12).fill(0)
+                };
+                setSyncStatus('syncing');
+                const payload = {
+                    brand_id: selectedLocation.toLowerCase(),
+                    vendor: item.vendor, publisher: item.publisher,
+                    campaign: item.campaign, category: item.category, status: item.status,
+                    ...monthsToAPI(item.months)
+                };
+                const result = await postAPI('addLineItem', payload);
+                if (result && result.id) { item.id = result.id; setSyncStatus('synced'); }
+                else { setSyncStatus('error'); }
+                setItems([...items, item]);
+                setShowAddModal(false);
+            };
+
+            const deleteLineItem = async (index) => {
+                const item = items[index];
+                if (!confirm('Delete "' + (item.campaign || item.vendor) + '"?')) return;
+                const newItems = [...items];
+                newItems.splice(index, 1);
+                setItems(newItems);
+                if (item.id) {
+                    setSyncStatus('syncing');
+                    const result = await postAPI('deleteLineItem', { id: item.id });
+                    setSyncStatus(result && !result.error ? 'synced' : 'error');
+                }
+            };
+
+            const handleAllocationEdit = async (monthIndex, value) => {
+                const newAllocations = [...currentLocationData.allocations];
+                newAllocations[monthIndex] = parseInt(value) || 0;
+                setLocationData(prev => ({
+                    ...prev,
+                    [selectedLocation]: { ...prev[selectedLocation], allocations: newAllocations }
+                }));
+                setSyncStatus('syncing');
+                const result = await postAPI('updateAllocation', {
+                    brand_id: selectedLocation.toLowerCase(),
+                    field: MONTH_KEYS[monthIndex],
+                    value: parseInt(value) || 0
+                });
+                setSyncStatus(result && !result.error ? 'synced' : 'error');
+            };
+
+            // Chart data
+            const monthlyTrendData = MONTHS.map((month, idx) => ({
+                month,
+                planned: items.reduce((sum, item) => sum + item.months[idx], 0),
+                allocation: currentLocationData.allocations[idx]
+            }));
+
+            const spendByCategory = {};
+            items.forEach(item => {
+                if (!spendByCategory[item.category]) spendByCategory[item.category] = 0;
+                spendByCategory[item.category] += item.months[selectedMonth];
+            });
+            const categoryChartData = Object.entries(spendByCategory).map(([cat, val]) => ({ category: cat, spend: val }));
+
+            const activeCount = items.filter(i => i.status === 'Active').length;
+            const trialCount = items.filter(i => i.status === 'Trial').length;
+            const unapprovedCount = items.filter(i => i.status === 'Unapproved').length;
+            const endedCount = items.filter(i => i.status === 'Ended').length;
+
+            const syncLabel = syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Saving...' : syncStatus === 'offline' ? 'Offline (local)' : syncStatus === 'error' ? 'Sync error' : 'Loading...';
+            const dotClass = syncStatus === 'syncing' ? 'syncing' : syncStatus === 'error' ? 'error' : syncStatus === 'offline' ? 'offline' : syncStatus === 'loading' ? 'loading' : '';
+
+            return (
+                <div className="container">
+                    {/* NAV */}
+                    <div className="nav">
+                        <div className="nav-left">
+                            <div className={`nav-dot ${dotClass}`}></div>
+                            <div className="nav-title">USP Budget 2026</div>
+                            <span className={`sync-status ${syncStatus === 'error' || syncStatus === 'offline' ? 'error' : syncStatus === 'syncing' ? 'syncing' : ''}`}>{syncLabel}</span>
+                        </div>
+                        <div className="nav-center">
+                            <button className={`nav-tab ${activeTab === 'budget' ? 'active' : ''}`} onClick={() => setActiveTab('budget')}>Budget</button>
+                            <button className={`nav-tab ${activeTab === 'allocation' ? 'active' : ''}`} onClick={() => setActiveTab('allocation')}>Allocation</button>
+                        </div>
+                        <div className="nav-right">
+                            <span className="hint-text">Double-click any cell to edit</span>
+                            <button className="settings-btn" onClick={() => setShowSettingsModal(true)}>&#9881;</button>
+                        </div>
+                    </div>
+
+                    {/* LOCATION TABS */}
+                    <div className="location-tabs">
+                        {LOCATIONS.map(loc => (
+                            <button key={loc} className={`location-tab ${selectedLocation === loc ? 'active' : ''}`} onClick={() => setSelectedLocation(loc)}>{loc}</button>
+                        ))}
+                    </div>
+
+                    {/* MAIN CONTENT */}
+                    <div className="content">
+                        {activeTab === 'budget' && (
+                            <>
+                                <div className="kpi-row">
+                                    <div className="kpi-card">
+                                        <div className="kpi-label">{MONTHS[selectedMonth]} Allocated</div>
+                                        <div className="kpi-value">${(allocation || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">Approved by corporate</div>
+                                    </div>
+                                    <div className="kpi-card">
+                                        <div className="kpi-label">Planned</div>
+                                        <div className="kpi-value">${(planned || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">vs previous month</div>
+                                    </div>
+                                    <div className={`kpi-card ${remaining >= 0 ? 'green' : 'red'}`}>
+                                        <div className="kpi-label">Remaining</div>
+                                        <div className={`kpi-value ${remaining >= 0 ? 'green' : 'red'}`}>${Math.abs(remaining || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">${Math.abs(remaining || 0).toLocaleString()} {remaining >= 0 ? 'under' : 'over'} allocation</div>
+                                    </div>
+                                    <div className="kpi-card orange">
+                                        <div className="kpi-label">Trial Spend</div>
+                                        <div className="kpi-value orange">${(trialSpend || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">${(annualTrialSpend || 0).toLocaleString()} annual / {trialCount} items</div>
+                                    </div>
+                                </div>
+
+                                <div className="utilization-card">
+                                    <div className="utilization-label">{MONTHS[selectedMonth]} Budget Utilization</div>
+                                    <div className="utilization-row">
+                                        <div className="utilization-left">{allocation ? Math.round((planned / allocation) * 100) : 0}% used</div>
+                                        <div className="utilization-right">${planned.toLocaleString()} of ${allocation.toLocaleString()}</div>
+                                    </div>
+                                    <div className="utilization-bar-bg">
+                                        <div className="utilization-bar-fill" style={{ width: `${allocation ? Math.min((planned / allocation) * 100, 100) : 0}%` }}></div>
+                                    </div>
+                                </div>
+
+                                <div className="table-card">
+                                    <div className="table-header">
+                                        <div className="table-title">Budget Line Items - Full Year 2026</div>
+                                        <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add Line Item</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th style={{ width: '30px' }}></th>
+                                                <th>Vendor / Campaign</th>
+                                                <th>Cat</th>
+                                                <th>Status</th>
+                                                {MONTHS.map((month, idx) => (
+                                                    <th key={month} style={{ background: idx === selectedMonth ? '#E5E5EA' : 'transparent' }}>{month}</th>
+                                                ))}
+                                                <th style={{ width: '30px' }}></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {items.map((item, idx) => (
+                                                <tr key={item.id || idx} draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(e, idx)} onDrop={(e) => handleDrop(e, idx)} className={draggedRowIndex === idx ? 'dragging' : dropTarget === idx ? 'drag-over' : ''}>
+                                                    <td className="drag-handle">&#9776;</td>
+                                                    <td className="vendor-cell">
+                                                        <div className="vendor-name">{item.vendor || '\u2014'}</div>
+                                                        <div className="vendor-subtitle">{item.publisher || '\u2014'} &bull; {item.campaign}</div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="category-badge">
+                                                            <div className="category-dot" style={{ backgroundColor: CATEGORIES[item.category] || '#8E8E93' }}></div>
+                                                            {item.category}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className={`status-pill ${item.status.toLowerCase()}`} onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const statuses = ['Active', 'Trial', 'Unapproved', 'Ended'];
+                                                            const nextStatus = statuses[(statuses.indexOf(item.status) + 1) % statuses.length];
+                                                            handleStatusChange(idx, nextStatus);
+                                                        }}>
+                                                            {item.status}
+                                                        </div>
+                                                    </td>
+                                                    {item.months.map((value, monthIdx) => (
+                                                        <td key={monthIdx} className={`month-cell ${monthIdx === selectedMonth ? 'current' : ''}`}
+                                                            onDoubleClick={() => {
+                                                                const input = prompt('Enter amount:', value || '');
+                                                                if (input !== null) handleMonthEdit(idx, monthIdx, input);
+                                                            }}>
+                                                            {value ? `$${value.toLocaleString()}` : '\u2014'}
+                                                        </td>
+                                                    ))}
+                                                    <td><button className="delete-btn" onClick={() => deleteLineItem(idx)} title="Delete">&times;</button></td>
+                                                </tr>
+                                            ))}
+                                            <tr className="total-row">
+                                                <td colSpan="4">TOTAL</td>
+                                                {MONTHS.map((_, idx) => (
+                                                    <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`}>${items.reduce((sum, item) => sum + item.months[idx], 0).toLocaleString()}</td>
+                                                ))}
+                                                <td></td>
+                                            </tr>
+                                            <tr className="allocation-row">
+                                                <td colSpan="4">ALLOCATION</td>
+                                                {MONTHS.map((_, idx) => (
+                                                    <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`}>${currentLocationData.allocations[idx].toLocaleString()}</td>
+                                                ))}
+                                                <td></td>
+                                            </tr>
+                                            <tr className="variance-row">
+                                                <td colSpan="4">VARIANCE</td>
+                                                {MONTHS.map((_, idx) => {
+                                                    const v = currentLocationData.allocations[idx] - items.reduce((sum, item) => sum + item.months[idx], 0);
+                                                    return <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''} ${v >= 0 ? 'variance-positive' : 'variance-negative'}`}>{v >= 0 ? '+' : ''}${v.toLocaleString()}</td>;
+                                                })}
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div className="status-summary">
+                                        {items.length} items &middot; {activeCount} active &middot; {trialCount} trial &middot; {unapprovedCount} unapproved &middot; {endedCount} ended
+                                    </div>
+                                </div>
+
+                                <div className="charts-row">
+                                    <div className="chart-card">
+                                        <div className="chart-title">Monthly Budget Trend</div>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <BarChart data={monthlyTrendData}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" />
+                                                <XAxis dataKey="month" />
+                                                <YAxis />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="planned" fill="#007AFF" />
+                                                <Bar dataKey="allocation" fill="#E5E5EA" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="chart-card">
+                                        <div className="chart-title">Spend by Category - {MONTHS[selectedMonth]}</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {categoryChartData.map(cat => (
+                                                <div key={cat.category} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    <div style={{ width: '80px', fontSize: '12px', fontWeight: '500' }}>{cat.category}</div>
+                                                    <div style={{ flex: 1, height: '20px', background: '#E5E5EA', borderRadius: '4px', overflow: 'hidden' }}>
+                                                        <div style={{ height: '100%', background: CATEGORIES[cat.category] || '#007AFF', width: `${Math.min((cat.spend / Math.max(...categoryChartData.map(c => c.spend), 1)) * 100, 100)}%` }}></div>
+                                                    </div>
+                                                    <div style={{ width: '60px', textAlign: 'right', fontSize: '12px', fontWeight: '500' }}>${cat.spend.toLocaleString()}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'allocation' && (
+                            <div className="table-card">
+                                <div className="table-title" style={{ marginBottom: '20px' }}>Monthly Allocation - {selectedLocation}</div>
+                                <table className="allocation-table">
+                                    <thead><tr>{MONTHS.map(month => <th key={month}>{month}</th>)}</tr></thead>
+                                    <tbody>
+                                        <tr>
+                                            {currentLocationData.allocations.map((alloc, idx) => (
+                                                <td key={idx} style={{ textAlign: 'center' }}>
+                                                    <input type="number" value={alloc} onChange={(e) => handleAllocationEdit(idx, e.target.value)} style={{ textAlign: 'center' }} />
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div style={{ marginTop: '20px', fontSize: '14px', color: '#8E8E93' }}>
+                                    <div>Total Annual: ${currentLocationData.allocations.reduce((a, b) => a + b, 0).toLocaleString()}</div>
+                                    <div>Revenue Target: ${currentLocationData.revenue.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* SETTINGS MODAL */}
+                    {showSettingsModal && (
+                        <div className="modal-overlay" onClick={() => setShowSettingsModal(false)}>
+                            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-title">Data Source Settings</div>
+                                <div className="settings-group">
+                                    <div className="settings-group-title">Apps Script Backend</div>
+                                    <div style={{ fontSize: '12px', color: syncStatus === 'synced' ? '#34C759' : '#FF9500', marginBottom: '8px' }}>
+                                        {syncStatus === 'synced' ? 'Connected' : syncStatus === 'offline' ? 'Disconnected - using local data' : 'Connecting...'}
+                                    </div>
+                                    <button className="modal-btn modal-btn-secondary" style={{ flex: 'none', marginBottom: '12px' }} onClick={() => { setShowSettingsModal(false); loadFromBackend(); }}>Refresh from Backend</button>
+                                </div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', color: '#1D1D1F' }}>Google Sheets CSV (Optional)</div>
+                                {LOCATIONS.map(loc => (
+                                    <div key={loc} className="settings-group">
+                                        <div className="settings-group-title">{loc}</div>
+                                        <input type="text" className="settings-group-input" placeholder="Paste CSV export URL..." value={googleSheetUrls[loc] || ''} onChange={(e) => setGoogleSheetUrls({ ...googleSheetUrls, [loc]: e.target.value })} />
+                                        <div className="settings-note">File &gt; Share &gt; Publish to web (as CSV)</div>
+                                    </div>
+                                ))}
+                                <div className="modal-buttons">
+                                    <button className="modal-btn modal-btn-primary" onClick={() => setShowSettingsModal(false)}>Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ADD LINE ITEM MODAL */}
+                    {showAddModal && (
+                        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+                            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-title">Add Line Item</div>
+                                <AddLineItemForm onAdd={addLineItem} onCancel={() => setShowAddModal(false)} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AddLineItemForm({ onAdd, onCancel }) {
+            const [form, setForm] = useState({
+                vendor: '', publisher: '', campaign: '', media: 'DIGITAL', category: 'PROSPECT', status: 'Active'
+            });
+
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">Vendor</label>
+                        <input type="text" className="form-input" value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Publisher</label>
+                        <input type="text" className="form-input" value={form.publisher} onChange={(e) => setForm({ ...form, publisher: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Campaign</label>
+                        <input type="text" className="form-input" value={form.campaign} onChange={(e) => setForm({ ...form, campaign: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Media Type</label>
+                        <select className="form-select" value={form.media} onChange={(e) => setForm({ ...form, media: e.target.value })}>
+                            <option>DIGITAL</option><option>SOCIAL</option><option>PRINT</option><option>OOH</option>
+                            <option>TECHNOLOGY</option><option>DIRECTORY</option><option>DIRECT MAIL</option><option>EVENTS</option><option>MERCH</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Category</label>
+                        <select className="form-select" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                            <option>PROSPECT</option><option>TECHNOLOGY</option><option>ROOFING</option><option>ALL</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Status</label>
+                        <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                            <option>Active</option><option>Trial</option><option>Unapproved</option><option>Ended</option>
+                        </select>
+                    </div>
+                    <div className="modal-buttons">
+                        <button className="modal-btn modal-btn-primary" onClick={() => onAdd(form)}>Add Item</button>
+                        <button className="modal-btn modal-btn-secondary" onClick={onCancel}>Cancel</button>
+                    </div>
+                </>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<BudgetDashboard />);
+    </script>
 </body>
 </html>
