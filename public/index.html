@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USP Budget Dashboard 2026</title>
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.2/Recharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background-color: #F5F5F7;
+            color: #1D1D1F;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* NAV */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(245, 245, 247, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #E5E5EA;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #007AFF;
+            border-radius: 50%;
+        }
+
+        .nav-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #8E8E93;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            background: #007AFF;
+            color: white;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hint-text {
+            font-size: 12px;
+            color: #8E8E93;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #1D1D1F;
+        }
+
+        /* LOCATION TABS */
+        .location-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            background: white;
+            border-bottom: 1px solid #E5E5EA;
+            overflow-x: auto;
+        }
+
+        .location-tab {
+            padding: 8px 16px;
+            border: 1px solid #E5E5EA;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1D1D1F;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .location-tab.active {
+            background: #1D1D1F;
+            color: white;
+            border-color: #1D1D1F;
+        }
+
+        /* MAIN CONTENT */
+        .content {
+            padding: 20px;
+        }
+
+        /* KPI CARDS */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            border-left: 4px solid #007AFF;
+        }
+
+        .kpi-card.green {
+            border-left-color: #34C759;
+        }
+
+        .kpi-card.red {
+            border-left-color: #FF3B30;
+        }
+
+        .kpi-card.orange {
+            border-left-color: #FF9500;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1D1D1F;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value.green {
+            color: #34C759;
+        }
+
+        .kpi-value.red {
+            color: #FF3B30;
+        }
+
+        .kpi-value.orange {
+            color: #FF9500;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-subtitle {
+            font-size: 13px;
+            color: #8E8E93;
+            margin-top: 8px;
+        }
+
+        /* UTILIZATION BAR */
+        .utilization-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .utilization-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1D1D1F;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .utilization-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .utilization-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #34C759;
+        }
+
+        .utilization-right {
+            font-size: 14px;
+            color: #8E8E93;
+        }
+
+        .utilization-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #E5E5EA;
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .utilization-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34C759, #007AFF);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* TABLE */
+        .table-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1D1D1F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .add-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            background: #0051D5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #F5F5F7;
+        }
+
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E5EA;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #E5E5EA;
+            font-size: 13px;
+            color: #1D1D1F;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #F9F9F9;
+        }
+
+        tbody tr.dragging {
+            opacity: 0.5;
+        }
+
+        tbody tr.drag-over {
+            border-top: 2px solid #007AFF;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #8E8E93;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .vendor-cell {
+            min-width: 200px;
+        }
+
+        .vendor-name {
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+
+        .vendor-subtitle {
+            font-size: 12px;
+            color: #8E8E93;
+        }
+
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .category-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .status-pill.active {
+            background: #D1F5D1;
+            color: #34C759;
+        }
+
+        .status-pill.trial {
+            background: #FFE5CC;
+            color: #FF9500;
+        }
+
+        .status-pill.unapproved {
+            background: #FFD1D1;
+            color: #FF3B30;
+        }
+
+        .status-pill.ended {
+            background: #E5E5EA;
+            color: #8E8E93;
+        }
+
+        .status-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            min-width: 150px;
+        }
+
+        .status-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #1D1D1F;
+            transition: background 0.2s;
+        }
+
+        .status-option:hover {
+            background: #F5F5F7;
+        }
+
+        .month-cell {
+            text-align: right;
+            min-width: 80px;
+            cursor: cell;
+            padding: 8px;
+        }
+
+        .month-cell.current {
+            background: #F0F0F0;
+            font-weight: 600;
+        }
+
+        .month-cell.editable {
+            cursor: text;
+        }
+
+        .month-cell input {
+            width: 100%;
+            border: 1px solid #007AFF;
+            border-radius: 4px;
+            padding: 4px;
+            font-size: 13px;
+        }
+
+        .total-row {
+            font-weight: 600;
+            background: #F9F9F9;
+        }
+
+        .allocation-row {
+            color: #FF9500;
+            font-weight: 600;
+        }
+
+        .variance-row {
+            background: #F9F9F9;
+        }
+
+        .variance-positive {
+            color: #34C759;
+        }
+
+        .variance-negative {
+            color: #FF3B30;
+        }
+
+        .status-summary {
+            font-size: 13px;
+            color: #8E8E93;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #E5E5EA;
+        }
+
+        /* CHARTS */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1D1D1F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        /* ALLOCATION VIEW */
+        .allocation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .allocation-table th {
+            background: #F5F5F7;
+            padding: 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            border-bottom: 1px solid #E5E5EA;
+        }
+
+        .allocation-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #E5E5EA;
+            font-size: 13px;
+        }
+
+        .allocation-table input {
+            width: 100%;
+            border: 1px solid #007AFF;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1D1D1F;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1D1D1F;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-primary {
+            background: #007AFF;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0051D5;
+        }
+
+        .modal-btn-secondary {
+            background: #F5F5F7;
+            color: #1D1D1F;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #E5E5EA;
+        }
+
+        /* SETTINGS MODAL */
+        .settings-group {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #F9F9F9;
+            border-radius: 8px;
+        }
+
+        .settings-group-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1D1D1F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .settings-group-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .settings-group-input:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        .settings-note {
+            font-size: 12px;
+            color: #8E8E93;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
+
+        const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC'];
+        const LOCATIONS = ['LEVEL', 'TITAN', 'TRADEMARK', 'PAPPAS', 'PRO'];
+        const CATEGORIES = {
+            'PROSPECT': '#007AFF',
+            'TECHNOLOGY': '#8E8E93',
+            'ROOFING': '#FF9500',
+            'ALL': '#AF52DE'
+        };
+
+        // R. Haines BU Spend by Vendor - Actual Credit Card Spend (Q1 2026)
+        const HAINES_ACTUAL_SPEND = {
+            LEVEL: {
+                totals: [20043.66, 8411.03, 18562.63, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                q1Total: 47017.32,
+                vendors: [
+                    { name: 'Scorpion', months: [6596, 2496, 7028.23, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'GovAssist', months: [9000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Logic Digital Media', months: [0, 2315, 3900, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Fanbasis', months: [0, 0, 6200, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Meta (Facebook)', months: [4813.26, 2193, 900, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Marchex / CallCap', months: [320, 320, 320, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Pindot Media', months: [185.40, 185.40, 185.40, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'PayUth Stuph', months: [0, 672.63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'SlickText', months: [29, 29, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+                ]
+            },
+            TITAN: {
+                totals: [19984.05, 16685.12, 29158.89, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                q1Total: 65828.06,
+                vendors: [
+                    { name: 'Scorpion', months: [8999, 5395.83, 12417.11, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Google Ads', months: [9440.90, 9721.14, 9921.63, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Maverick Lead Gen', months: [0, 0, 5000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Hatch', months: [1284.15, 1284.15, 1284.15, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Marchex / CallCap', months: [260, 260, 260, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Squarespace', months: [0, 24, 276, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+                ]
+            },
+            TRADEMARK: {
+                totals: [28212.63, 28059.39, 42984.04, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                q1Total: 99256.06,
+                vendors: [
+                    { name: 'Scorpion', months: [12999, 8249, 17850.94, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Google Ads', months: [10252.68, 11595.96, 15346.62, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Minuteman Press', months: [2704.80, 5958.28, 1330.33, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Fanbasis', months: [0, 0, 6200, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Hatch', months: [1879.15, 1879.15, 1879.15, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Marchex / CallCap', months: [332, 332, 332, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Mailchimp', months: [45, 45, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+                ]
+            },
+            PAPPAS: {
+                totals: [14364.75, 7164.75, 16744.26, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                q1Total: 38273.76,
+                vendors: [
+                    { name: 'Scorpion', months: [12200, 5000, 9200, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Maverick Lead Gen', months: [0, 0, 5000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Pro Sports Publications', months: [1792, 1792, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Millet The Printer', months: [0, 0, 2145.51, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Marchex / CallCap', months: [258, 258, 284, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Mailchimp', months: [114.75, 114.75, 114.75, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+                ]
+            },
+            PRO: {
+                totals: [20464.97, 27719.86, 29494.33, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                q1Total: 77679.16,
+                vendors: [
+                    { name: 'Google Ads', months: [6677.63, 6433.41, 10427.61, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Kala Presence', months: [6300, 6300, 6300, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Meta (Facebook)', months: [7601.53, 4830.34, 9209.52, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'PayUth Stuph', months: [0, 9848.20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Peacock Press', months: [0, 0, 3246.91, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'WhatConverts', months: [222.39, 244.49, 246.87, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'FX / Other Fees', months: [63.42, 63.42, 63.42, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+                ]
+            }
+        };
+
+        // Embedded data
+        const EMBEDDED_DATA = {
+            LEVEL: {
+                allocations: [17000, 32700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 37700, 22700, 22700],
+                revenue: 12000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696, 3696] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising (Roof)', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 500, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 2000, 2000, 4000, 4000, 2000, 0, 2000, 2000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 4000, 4000, 4000, 4000, 2000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'NEXTDOOR', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Trial', months: [0, 0, 350, 350, 350, 350, 350, 350, 350, 350, 0, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [1000, 1000, 3000, 1000, 3000, 3000, 1000, 0, 3000, 1000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising (Roof)', media: 'SOCIAL', category: 'ROOFING', status: 'Active', months: [2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 0, 0] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250] },
+                    { vendor: '', publisher: 'GOOGLE', campaign: 'GBP', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] },
+                    { vendor: 'OUTFRONT', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 7500, 0, 7500, 0, 7500, 7500, 7500, 0, 7500, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 3250, 0, 3250, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: 'SERVICE TITAN', publisher: '', campaign: 'CRM', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 1500, 0, 1500, 0, 1500, 0, 1500, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Mailers', media: 'DIRECT MAIL', category: 'ALL', status: 'Active', months: [0, 0, 0, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [0, 0, 2000, 0, 4000, 0, 0, 0, 4000, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 0, 500, 0, 500, 0, 500, 0, 0, 0] }
+                ]
+            },
+            TITAN: {
+                allocations: [27200, 27200, 57200, 27200, 27200, 27200, 27200, 27200, 27200, 27200, 27200, 27200],
+                revenue: 8000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [9300, 9300, 9300, 9300, 9300, 9300, 9300, 9300, 9300, 2000, 2000, 2000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 4000, 2000, 4000, 2000, 2000, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 2000, 2000, 4000, 4000, 2000, 2000] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 6000, 4000, 2000, 4000, 2000, 2000, 0] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising (Roof)', media: 'SOCIAL', category: 'ROOFING', status: 'Active', months: [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 20000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 0, 0, 0, 0, 0, 5000, 0, 5000, 5000, 5000] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 2400, 0, 0, 0, 2400, 0, 0, 0, 2400, 0] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [5000, 5000, 5000, 0, 0, 0, 0, 0, 0, 5000, 5000, 5000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 400, 1500, 0, 0, 0, 1500, 0, 0, 0, 1500, 0] }
+                ]
+            },
+            TRADEMARK: {
+                allocations: [50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100, 50100],
+                revenue: 20000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising (Roof)', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [5000, 5000, 5000, 5000, 5000, 10000, 5000, 5000, 5000, 5000, 5000, 10000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3000, 3000, 5000, 5000, 5000, 8000, 3000, 3000, 5000, 5000, 3000, 3000] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3000, 3000, 5000, 5000, 5000, 8000, 3000, 5000, 5000, 3000, 3000, 5000] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'NEXTDOOR', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Trial', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 10000, 3500, 3500, 3500, 3500, 3500, 10000] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0, 5000, 0] },
+                    { vendor: '', publisher: '', campaign: 'Mailers', media: 'DIRECT MAIL', category: 'ALL', status: 'Active', months: [0, 0, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 6000] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 1500, 0, 1500, 0, 1500, 0, 1500, 0, 1500, 0] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [5000, 5000, 5000, 5000, 0, 0, 0, 0, 0, 5000, 5000, 5000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 0, 500, 0, 500, 0, 500, 0, 500, 0] }
+                ]
+            },
+            PAPPAS: {
+                allocations: [16000, 16000, 36000, 21000, 21000, 21000, 21000, 21000, 21000, 21000, 21000, 21000],
+                revenue: 13000000,
+                items: [
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'PMAX', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 3000, 3000, 3000, 5000, 1500, 1500, 3000, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 4000, 4000, 4000, 4000, 2000, 2000, 4000, 2000, 2000, 2000] },
+                    { vendor: 'SCORPION', publisher: 'BING', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [1500, 1500, 3000, 3000, 3000, 5000, 1500, 1500, 3000, 1500, 1500, 1500] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising (Roof)', media: 'SOCIAL', category: 'ROOFING', status: 'Active', months: [2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'GOOGLE', campaign: 'GBP', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [0, 500, 500, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 7000, 0, 0, 0, 7000, 0, 0, 7000, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 3000, 0, 0, 0, 0, 0, 0, 0, 3000, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350, 350] },
+                    { vendor: '', publisher: '', campaign: 'Door Hangers', media: 'PRINT', category: 'ALL', status: 'Active', months: [0, 0, 2000, 0, 0, 0, 2000, 0, 0, 0, 2000, 0] },
+                    { vendor: '', publisher: '', campaign: 'Mailers', media: 'DIRECT MAIL', category: 'ALL', status: 'Active', months: [0, 0, 2000, 2000, 2000, 2000, 0, 2000, 0, 2000, 2000, 2000] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [2000, 2000, 2000, 0, 0, 0, 0, 0, 0, 0, 2000, 2000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 0, 500, 0, 500, 0, 500, 0, 500, 0] }
+                ]
+            },
+            PRO: {
+                allocations: [25700, 25700, 45700, 35700, 35700, 30700, 30700, 30700, 30700, 30700, 30700, 30700],
+                revenue: 34000000,
+                items: [
+                    { vendor: 'MARCHEX', publisher: 'MARCHEX', campaign: 'Call Tracking', media: 'DIGITAL', category: 'ROOFING', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'Advertising', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [2000, 2000, 6000, 6000, 8000, 12000, 6000, 8000, 12000, 6000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: 'GOOGLE', campaign: 'LSA', media: 'DIGITAL', category: 'PROSPECT', status: 'Active', months: [0, 0, 4000, 4000, 4000, 6000, 4000, 6000, 8000, 6000, 0, 0] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'WEBSITE', media: 'DIGITAL', category: 'ALL', status: 'Active', months: [650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650] },
+                    { vendor: 'SCORPION', publisher: 'META', campaign: 'Advertising', media: 'SOCIAL', category: 'PROSPECT', status: 'Active', months: [0, 0, 2500, 2500, 4000, 6000, 2500, 4000, 6000, 4000, 0, 0] },
+                    { vendor: '', publisher: 'META', campaign: 'Boosting', media: 'SOCIAL', category: 'ALL', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'YELP', campaign: 'Enhanced Profile', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500] },
+                    { vendor: '', publisher: 'GOOGLE', campaign: 'GBP', media: 'DIRECTORY', category: 'PROSPECT', status: 'Active', months: [0, 0, 500, 500, 500, 500, 500, 500, 500, 500, 0, 0] },
+                    { vendor: '', publisher: '', campaign: 'Billboard', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 7500, 7500, 7500, 0, 7500, 0, 7500, 7500, 14000, 14000] },
+                    { vendor: '', publisher: '', campaign: 'Vehicle Wraps', media: 'OOH', category: 'ALL', status: 'Active', months: [0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0, 8500, 8500] },
+                    { vendor: 'SCORPION', publisher: '', campaign: 'Platform Fee', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750, 750] },
+                    { vendor: 'PODIUM', publisher: '', campaign: 'Reviews', media: 'TECHNOLOGY', category: 'ALL', status: 'Active', months: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300] },
+                    { vendor: '', publisher: '', campaign: 'Home Shows', media: 'EVENTS', category: 'ALL', status: 'Active', months: [0, 0, 10000, 5000, 0, 0, 0, 5000, 0, 0, 5000, 5000] },
+                    { vendor: '', publisher: '', campaign: 'Yard Signs', media: 'MERCH', category: 'ALL', status: 'Active', months: [0, 0, 500, 500, 500, 0, 500, 0, 500, 0, 0, 0] }
+                ]
+            }
+        };
+
+        function BudgetDashboard() {
+            const [activeTab, setActiveTab] = useState('budget');
+            const [selectedLocation, setSelectedLocation] = useState('LEVEL');
+            const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+            const [showSettingsModal, setShowSettingsModal] = useState(false);
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [draggedRowIndex, setDraggedRowIndex] = useState(null);
+            const [dropTarget, setDropTarget] = useState(null);
+            const [googleSheetUrls, setGoogleSheetUrls] = useState({});
+            const [dataSource, setDataSource] = useState('embedded');
+            const [expenses, setExpenses] = useState([]);
+            const [expenseLoading, setExpenseLoading] = useState(false);
+            const [showExpenseModal, setShowExpenseModal] = useState(false);
+            const [expenseForm, setExpenseForm] = useState({ description: '', vendor: '', amount: '', date: '', memo: '' });
+            const [csvDragOver, setCsvDragOver] = useState(false);
+
+            // Expense API calls
+            const API_BASE = window.location.origin;
+            const fetchExpenses = async (branch) => {
+                try {
+                    const url = branch && branch !== 'All Locations' ? `${API_BASE}/api/expenses?branch=${branch}` : `${API_BASE}/api/expenses`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    setExpenses(data.expenses || []);
+                } catch(e) { console.log('Expenses not available (server not running)'); }
+            };
+            const addExpense = async () => {
+                if (!expenseForm.description && !expenseForm.vendor) return;
+                setExpenseLoading(true);
+                try {
+                    const res = await fetch(`${API_BASE}/api/expenses`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(expenseForm) });
+                    const exp = await res.json();
+                    setExpenses(prev => [exp, ...prev]);
+                    setExpenseForm({ description: '', vendor: '', amount: '', date: '', memo: '' });
+                    setShowExpenseModal(false);
+                } catch(e) { alert('Server not running. Start with: npm start'); }
+                setExpenseLoading(false);
+            };
+            const uploadExpenseCsv = async (file) => {
+                setExpenseLoading(true);
+                try {
+                    const fd = new FormData(); fd.append('file', file);
+                    const res = await fetch(`${API_BASE}/api/expenses/upload`, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    setExpenses(prev => [...(data.expenses || []), ...prev]);
+                } catch(e) { alert('Server not running. Start with: npm start'); }
+                setExpenseLoading(false);
+            };
+            const updateExpenseBranch = async (id, branch) => {
+                try {
+                    await fetch(`${API_BASE}/api/expenses/${id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ branch }) });
+                    setExpenses(prev => prev.map(e => e.id === id ? { ...e, branch, confidence: 1, reasoning: 'Manual override' } : e));
+                } catch(e) {}
+            };
+            const deleteExpense = async (id) => {
+                try {
+                    await fetch(`${API_BASE}/api/expenses/${id}`, { method: 'DELETE' });
+                    setExpenses(prev => prev.filter(e => e.id !== id));
+                } catch(e) {}
+            };
+            useEffect(() => { if (activeTab === 'expenses') fetchExpenses(selectedLocation === 'All Locations' ? null : selectedLocation); }, [activeTab, selectedLocation]);
+            const [locationData, setLocationData] = useState(EMBEDDED_DATA);
+            const [items, setItems] = useState(EMBEDDED_DATA[selectedLocation].items.map(i => ({ ...i })));
+
+            // Fetch data from Google Sheets
+            useEffect(() => {
+                if (googleSheetUrls[selectedLocation]) {
+                    fetchGoogleSheetData(googleSheetUrls[selectedLocation], selectedLocation);
+                    const interval = setInterval(() => {
+                        fetchGoogleSheetData(googleSheetUrls[selectedLocation], selectedLocation);
+                    }, 60000);
+                    return () => clearInterval(interval);
+                }
+            }, [googleSheetUrls, selectedLocation]);
+
+            const fetchGoogleSheetData = (url, location) => {
+                Papa.parse(url, {
+                    download: true,
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        parseGoogleSheetData(results.data, location);
+                    },
+                    error: () => console.log('Error loading sheet')
+                });
+            };
+
+            const parseGoogleSheetData = (rows, location) => {
+                if (rows.length < 4) return;
+
+                // Row 1: ALLOCATION
+                const allocRow = rows[0];
+                const allocations = MONTHS.map((_, i) => parseInt(allocRow[8 + i]) || 0);
+
+                // Row 2: REVENUE_TARGET
+                const revenueTarget = parseInt(rows[1][1]) || 0;
+
+                // Row 4+: Data rows
+                const newItems = [];
+                for (let i = 3; i < rows.length; i++) {
+                    const row = rows[i];
+                    const months = MONTHS.map((_, j) => parseInt(row[7 + j]) || 0);
+                    newItems.push({
+                        vendor: row[0] || '',
+                        publisher: row[1] || '',
+                        campaign: row[2] || '',
+                        media: row[3] || '',
+                        category: row[4] || 'ALL',
+                        status: row[5] || 'Active',
+                        months
+                    });
+                }
+
+                setLocationData(prev => ({
+                    ...prev,
+                    [location]: {
+                        allocations,
+                        revenue: revenueTarget,
+                        items: newItems
+                    }
+                }));
+
+                if (location === selectedLocation) {
+                    setItems(newItems);
+                }
+                setDataSource('google');
+            };
+
+            // Update items when location changes
+            useEffect(() => {
+                if (locationData[selectedLocation]) {
+                    setItems(locationData[selectedLocation].items.map(i => ({ ...i })));
+                }
+            }, [selectedLocation, locationData]);
+
+            const currentLocationData = locationData[selectedLocation];
+            const allocation = currentLocationData.allocations[selectedMonth];
+            const revenue = currentLocationData.revenue;
+
+            // Calculate metrics
+            const planned = items.reduce((sum, item) => sum + item.months[selectedMonth], 0);
+            const remaining = allocation - planned;
+            const trialItems = items.filter(item => item.status === 'Trial');
+            const trialSpend = trialItems.reduce((sum, item) => sum + item.months[selectedMonth], 0);
+            const annualTrialSpend = trialItems.reduce((sum, item) => sum + item.months.reduce((a, b) => a + b, 0), 0);
+
+            const handleStatusChange = (index, status) => {
+                const newItems = [...items];
+                newItems[index].status = status;
+                setItems(newItems);
+            };
+
+            const handleMonthEdit = (rowIndex, monthIndex, value) => {
+                const newItems = [...items];
+                newItems[rowIndex].months[monthIndex] = parseInt(value) || 0;
+                setItems(newItems);
+            };
+
+            const handleDragStart = (index) => {
+                setDraggedRowIndex(index);
+            };
+
+            const handleDragOver = (e, index) => {
+                e.preventDefault();
+                setDropTarget(index);
+            };
+
+            const handleDrop = (e, targetIndex) => {
+                e.preventDefault();
+                if (draggedRowIndex !== null && draggedRowIndex !== targetIndex) {
+                    const newItems = [...items];
+                    const draggedItem = newItems[draggedRowIndex];
+                    newItems.splice(draggedRowIndex, 1);
+                    newItems.splice(targetIndex, 0, draggedItem);
+                    setItems(newItems);
+                }
+                setDraggedRowIndex(null);
+                setDropTarget(null);
+            };
+
+            const addLineItem = (newItem) => {
+                const item = {
+                    vendor: newItem.vendor || '',
+                    publisher: newItem.publisher || '',
+                    campaign: newItem.campaign || '',
+                    media: newItem.media || '',
+                    category: newItem.category || 'PROSPECT',
+                    status: newItem.status || 'Active',
+                    months: new Array(12).fill(0)
+                };
+                setItems([...items, item]);
+                setShowAddModal(false);
+            };
+
+            const handleAllocationEdit = (monthIndex, value) => {
+                const newAllocations = [...currentLocationData.allocations];
+                newAllocations[monthIndex] = parseInt(value) || 0;
+                setLocationData(prev => ({
+                    ...prev,
+                    [selectedLocation]: { ...prev[selectedLocation], allocations: newAllocations }
+                }));
+            };
+
+            // Chart data
+            const monthlyTrendData = MONTHS.map((month, idx) => ({
+                month,
+                planned: items.reduce((sum, item) => sum + item.months[idx], 0),
+                allocation: currentLocationData.allocations[idx],
+                actual: HAINES_ACTUAL_SPEND[selectedLocation] ? Math.round(HAINES_ACTUAL_SPEND[selectedLocation].totals[idx]) : 0
+            }));
+
+            const spendByCategory = {};
+            MONTHS.forEach((_, idx) => {
+                MONTHS.forEach((_, idx2) => {
+                    items.forEach(item => {
+                        if (idx2 === selectedMonth) {
+                            if (!spendByCategory[item.category]) spendByCategory[item.category] = 0;
+                            spendByCategory[item.category] += item.months[idx2];
+                        }
+                    });
+                });
+            });
+
+            const categoryChartData = Object.entries(spendByCategory).map(([cat, val]) => ({
+                category: cat,
+                spend: val
+            }));
+
+            // Status counts
+            const activeCount = items.filter(i => i.status === 'Active').length;
+            const trialCount = items.filter(i => i.status === 'Trial').length;
+            const unapprovedCount = items.filter(i => i.status === 'Unapproved').length;
+            const endedCount = items.filter(i => i.status === 'Ended').length;
+
+            return (
+                <div className="container">
+                    {/* NAV */}
+                    <div className="nav">
+                        <div className="nav-left">
+                            <div className="nav-dot"></div>
+                            <div className="nav-title">USP Budget 2026</div>
+                        </div>
+                        <div className="nav-center">
+                            <button className={`nav-tab ${activeTab === 'budget' ? 'active' : ''}`} onClick={() => setActiveTab('budget')}>Budget</button>
+                            <button className={`nav-tab ${activeTab === 'allocation' ? 'active' : ''}`} onClick={() => setActiveTab('allocation')}>Allocation</button>
+                            <button className={`nav-tab ${activeTab === 'actuals' ? 'active' : ''}`} onClick={() => setActiveTab('actuals')} style={activeTab === 'actuals' ? { background: '#FF9500', color: '#fff' } : {}}>Actuals (Haines)</button>
+                            <button className={`nav-tab ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')} style={activeTab === 'expenses' ? { background: '#34C759', color: '#fff' } : {}}>Expenses</button>
+                        </div>
+                        <div className="nav-right">
+                            <span className="hint-text">Double-click any cell to edit</span>
+                            <button className="settings-btn" onClick={() => setShowSettingsModal(true)}>⚙️</button>
+                        </div>
+                    </div>
+
+                    {/* LOCATION TABS */}
+                    <div className="location-tabs">
+                        {['All Locations', ...LOCATIONS].map(loc => (
+                            <button
+                                key={loc}
+                                className={`location-tab ${selectedLocation === loc ? 'active' : ''}`}
+                                onClick={() => setSelectedLocation(loc)}
+                            >
+                                {loc}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* MAIN CONTENT */}
+                    <div className="content">
+                        {activeTab === 'budget' && (
+                            <>
+                                {/* KPI CARDS */}
+                                <div className="kpi-row">
+                                    <div className="kpi-card">
+                                        <div className="kpi-label">{MONTHS[selectedMonth]} Allocated</div>
+                                        <div className="kpi-value">${(allocation || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">Approved by corporate</div>
+                                    </div>
+                                    <div className="kpi-card">
+                                        <div className="kpi-label">Planned</div>
+                                        <div className="kpi-value">${(planned || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">vs previous month</div>
+                                    </div>
+                                    <div className={`kpi-card ${remaining >= 0 ? 'green' : 'red'}`}>
+                                        <div className="kpi-label">Remaining</div>
+                                        <div className={`kpi-value ${remaining >= 0 ? 'green' : 'red'}`}>${Math.abs(remaining || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">${Math.abs(remaining || 0).toLocaleString()} ${remaining >= 0 ? 'under' : 'over'} allocation</div>
+                                    </div>
+                                    <div className="kpi-card orange">
+                                        <div className="kpi-label">Trial Spend · {MONTHS[selectedMonth]}</div>
+                                        <div className="kpi-value orange">${(trialSpend || 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">${(annualTrialSpend || 0).toLocaleString()} annual · {trialCount} items</div>
+                                    </div>
+                                </div>
+
+                                {/* UTILIZATION BAR */}
+                                <div className="utilization-card">
+                                    <div className="utilization-label">{MONTHS[selectedMonth]} Budget Utilization (In Progress)</div>
+                                    <div className="utilization-row">
+                                        <div className="utilization-left">{allocation ? Math.round((planned / allocation) * 100) : 0}% used</div>
+                                        <div className="utilization-right">${planned.toLocaleString()} of ${allocation.toLocaleString()}</div>
+                                    </div>
+                                    <div className="utilization-bar-bg">
+                                        <div className="utilization-bar-fill" style={{ width: `${allocation ? Math.min((planned / allocation) * 100, 100) : 0}%` }}></div>
+                                    </div>
+                                </div>
+
+                                {/* TABLE */}
+                                <div className="table-card">
+                                    <div className="table-header">
+                                        <div className="table-title">Budget Line Items - Full Year 2026</div>
+                                        <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add Line Item</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th style={{ width: '30px' }}></th>
+                                                <th>Vendor / Campaign</th>
+                                                <th>Cat</th>
+                                                <th>Status</th>
+                                                {MONTHS.map((month, idx) => (
+                                                    <th key={month} style={{ background: idx === selectedMonth ? '#E5E5EA' : 'transparent' }}>
+                                                        {month}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {items.map((item, idx) => (
+                                                <tr key={idx} draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(e, idx)} onDrop={(e) => handleDrop(e, idx)} className={draggedRowIndex === idx ? 'dragging' : dropTarget === idx ? 'drag-over' : ''}>
+                                                    <td className="drag-handle">≡</td>
+                                                    <td className="vendor-cell">
+                                                        <div className="vendor-name">{item.vendor || '—'}</div>
+                                                        <div className="vendor-subtitle">{item.publisher || '—'} • {item.campaign}</div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="category-badge">
+                                                            <div className="category-dot" style={{ backgroundColor: CATEGORIES[item.category] || '#8E8E93' }}></div>
+                                                            {item.category}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ position: 'relative' }}>
+                                                            <div
+                                                                className={`status-pill ${item.status.toLowerCase()}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    // Simple status cycle for demo
+                                                                    const statuses = ['Active', 'Trial', 'Unapproved', 'Ended'];
+                                                                    const nextStatus = statuses[(statuses.indexOf(item.status) + 1) % statuses.length];
+                                                                    handleStatusChange(idx, nextStatus);
+                                                                }}
+                                                            >
+                                                                {item.status}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    {item.months.map((value, monthIdx) => (
+                                                        <td
+                                                            key={monthIdx}
+                                                            className={`month-cell ${monthIdx === selectedMonth ? 'current' : ''}`}
+                                                            onDoubleClick={() => {
+                                                                const input = prompt('Enter amount:', value || '');
+                                                                if (input !== null) {
+                                                                    handleMonthEdit(idx, monthIdx, input);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {value ? `$${value.toLocaleString()}` : '—'}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                            <tr className="total-row">
+                                                <td colSpan="4">TOTAL</td>
+                                                {MONTHS.map((_, idx) => (
+                                                    <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`}>
+                                                        ${items.reduce((sum, item) => sum + item.months[idx], 0).toLocaleString()}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                            <tr className="allocation-row">
+                                                <td colSpan="4">ALLOCATION</td>
+                                                {MONTHS.map((_, idx) => (
+                                                    <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`}>
+                                                        ${currentLocationData.allocations[idx].toLocaleString()}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                            {HAINES_ACTUAL_SPEND[selectedLocation] && (
+                                                <tr style={{ fontWeight: 600, background: '#FFF8F0', borderTop: '2px solid #FF9500' }}>
+                                                    <td colSpan="4" style={{ color: '#FF9500' }}>ACTUAL SPEND (R. HAINES)</td>
+                                                    {MONTHS.map((_, idx) => {
+                                                        const actual = HAINES_ACTUAL_SPEND[selectedLocation] ? HAINES_ACTUAL_SPEND[selectedLocation].totals[idx] : 0;
+                                                        return (
+                                                            <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`} style={{ color: actual > 0 ? '#FF9500' : '#8E8E93' }}>
+                                                                {actual > 0 ? `$${Math.round(actual).toLocaleString()}` : '---'}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            )}
+                                            <tr className="variance-row">
+                                                <td colSpan="4">VARIANCE (PLANNED)</td>
+                                                {MONTHS.map((_, idx) => {
+                                                    const variance = currentLocationData.allocations[idx] - items.reduce((sum, item) => sum + item.months[idx], 0);
+                                                    return (
+                                                        <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''} ${variance >= 0 ? 'variance-positive' : 'variance-negative'}`}>
+                                                            {variance >= 0 ? '+' : ''}${variance.toLocaleString()}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                            {HAINES_ACTUAL_SPEND[selectedLocation] && (
+                                                <tr style={{ background: '#FFF8F0' }}>
+                                                    <td colSpan="4" style={{ fontWeight: 600, color: '#1D1D1F' }}>VARIANCE (ACTUAL)</td>
+                                                    {MONTHS.map((_, idx) => {
+                                                        const actual = HAINES_ACTUAL_SPEND[selectedLocation].totals[idx];
+                                                        const alloc = currentLocationData.allocations[idx];
+                                                        const variance = alloc - actual;
+                                                        if (idx > 2) return <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`} style={{ color: '#8E8E93' }}>---</td>;
+                                                        return (
+                                                            <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`} style={{ fontWeight: 600, color: variance >= 0 ? '#34C759' : '#FF3B30' }}>
+                                                                {variance >= 0 ? '+' : ''}{`$${Math.round(Math.abs(variance)).toLocaleString()}`}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                    <div className="status-summary">
+                                        {items.length} items · {activeCount} active · {trialCount} trial · {unapprovedCount} unapproved · {endedCount} ended
+                                    </div>
+                                </div>
+
+                                {/* CHARTS */}
+                                <div className="charts-row">
+                                    <div className="chart-card">
+                                        <div className="chart-title">Monthly Budget Trend</div>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <BarChart data={monthlyTrendData}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" />
+                                                <XAxis dataKey="month" />
+                                                <YAxis />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="planned" fill="#007AFF" name="Planned" />
+                                                <Bar dataKey="actual" fill="#FF9500" name="Actual (Haines)" />
+                                                <Bar dataKey="allocation" fill="#E5E5EA" name="Allocation" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="chart-card">
+                                        <div className="chart-title">Spend by Category - {MONTHS[selectedMonth]}</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {categoryChartData.map(cat => (
+                                                <div key={cat.category} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    <div style={{ width: '80px', fontSize: '12px', fontWeight: '500' }}>{cat.category}</div>
+                                                    <div style={{ flex: 1, height: '20px', background: '#E5E5EA', borderRadius: '4px', overflow: 'hidden' }}>
+                                                        <div style={{ height: '100%', background: CATEGORIES[cat.category] || '#007AFF', width: `${Math.min((cat.spend / Math.max(...categoryChartData.map(c => c.spend), 1)) * 100, 100)}%` }}></div>
+                                                    </div>
+                                                    <div style={{ width: '60px', textAlign: 'right', fontSize: '12px', fontWeight: '500' }}>${cat.spend.toLocaleString()}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'actuals' && (
+                            <>
+                                {/* Actuals KPI Cards */}
+                                <div className="kpi-row">
+                                    <div className="kpi-card" style={{ borderLeft: '4px solid #FF9500' }}>
+                                        <div className="kpi-label">Q1 ACTUAL (HAINES CARD)</div>
+                                        <div className="kpi-value" style={{ color: '#FF9500' }}>
+                                            ${HAINES_ACTUAL_SPEND[selectedLocation] ? Math.round(HAINES_ACTUAL_SPEND[selectedLocation].q1Total).toLocaleString() : '---'}
+                                        </div>
+                                        <div className="kpi-subtitle">Jan - Mar 2026 credit card spend</div>
+                                    </div>
+                                    <div className="kpi-card">
+                                        <div className="kpi-label">Q1 PLANNED</div>
+                                        <div className="kpi-value">
+                                            ${items.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0).toLocaleString()}
+                                        </div>
+                                        <div className="kpi-subtitle">Budget plan Jan - Mar</div>
+                                    </div>
+                                    <div className="kpi-card">
+                                        <div className="kpi-label">Q1 ALLOCATED</div>
+                                        <div className="kpi-value">
+                                            ${(currentLocationData.allocations[0] + currentLocationData.allocations[1] + currentLocationData.allocations[2]).toLocaleString()}
+                                        </div>
+                                        <div className="kpi-subtitle">Approved allocation Jan - Mar</div>
+                                    </div>
+                                    {(() => {
+                                        const actualQ1 = HAINES_ACTUAL_SPEND[selectedLocation] ? HAINES_ACTUAL_SPEND[selectedLocation].q1Total : 0;
+                                        const allocQ1 = currentLocationData.allocations[0] + currentLocationData.allocations[1] + currentLocationData.allocations[2];
+                                        const diff = allocQ1 - actualQ1;
+                                        return (
+                                            <div className={`kpi-card ${diff >= 0 ? 'green' : 'red'}`}>
+                                                <div className="kpi-label">Q1 OVER/UNDER</div>
+                                                <div className={`kpi-value ${diff >= 0 ? 'green' : 'red'}`}>
+                                                    {diff >= 0 ? '+' : '-'}${Math.round(Math.abs(diff)).toLocaleString()}
+                                                </div>
+                                                <div className="kpi-subtitle">{diff >= 0 ? 'Under allocation' : 'Over allocation'}</div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+
+                                {/* Vendor Spend Breakdown Table */}
+                                <div className="table-card">
+                                    <div className="table-header">
+                                        <div className="table-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#FF9500' }}></span>
+                                            R. Haines Vendor Spend - {selectedLocation} (Q1 2026)
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#8E8E93' }}>Source: BU Spend by Vendor.xlsx</div>
+                                    </div>
+                                    {HAINES_ACTUAL_SPEND[selectedLocation] ? (
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ width: '250px' }}>Vendor</th>
+                                                    {MONTHS.map((month, idx) => (
+                                                        <th key={month} style={{ textAlign: 'right', background: idx < 3 ? '#FFF8F0' : 'transparent', color: idx < 3 ? '#FF9500' : '#8E8E93' }}>
+                                                            {month}
+                                                        </th>
+                                                    ))}
+                                                    <th style={{ textAlign: 'right', background: '#FFF3E0', color: '#E65100', fontWeight: 700 }}>Q1 TOTAL</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {HAINES_ACTUAL_SPEND[selectedLocation].vendors.map((vendor, idx) => (
+                                                    <tr key={idx}>
+                                                        <td style={{ fontWeight: 600 }}>{vendor.name}</td>
+                                                        {vendor.months.map((val, midx) => (
+                                                            <td key={midx} className="month-cell" style={{ color: val > 0 ? '#1D1D1F' : '#D1D1D6' }}>
+                                                                {val > 0 ? `$${Math.round(val).toLocaleString()}` : '---'}
+                                                            </td>
+                                                        ))}
+                                                        <td className="month-cell" style={{ fontWeight: 600, background: '#FFF8F0', color: '#E65100' }}>
+                                                            ${Math.round(vendor.months[0] + vendor.months[1] + vendor.months[2]).toLocaleString()}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                <tr className="total-row" style={{ borderTop: '2px solid #FF9500' }}>
+                                                    <td style={{ fontWeight: 700, color: '#FF9500' }}>TOTAL ACTUAL</td>
+                                                    {HAINES_ACTUAL_SPEND[selectedLocation].totals.map((val, idx) => (
+                                                        <td key={idx} className="month-cell" style={{ fontWeight: 700, color: val > 0 ? '#FF9500' : '#D1D1D6' }}>
+                                                            {val > 0 ? `$${Math.round(val).toLocaleString()}` : '---'}
+                                                        </td>
+                                                    ))}
+                                                    <td className="month-cell" style={{ fontWeight: 700, background: '#FFF3E0', color: '#E65100', fontSize: '14px' }}>
+                                                        ${Math.round(HAINES_ACTUAL_SPEND[selectedLocation].q1Total).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                                <tr className="allocation-row">
+                                                    <td>PLANNED</td>
+                                                    {MONTHS.map((_, idx) => (
+                                                        <td key={idx} className="month-cell">
+                                                            ${items.reduce((sum, item) => sum + item.months[idx], 0).toLocaleString()}
+                                                        </td>
+                                                    ))}
+                                                    <td className="month-cell" style={{ fontWeight: 600 }}>
+                                                        ${items.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: 600 }}>ACTUAL vs PLANNED</td>
+                                                    {MONTHS.map((_, idx) => {
+                                                        if (idx > 2) return <td key={idx} className="month-cell" style={{ color: '#D1D1D6' }}>---</td>;
+                                                        const actual = HAINES_ACTUAL_SPEND[selectedLocation].totals[idx];
+                                                        const planned = items.reduce((sum, item) => sum + item.months[idx], 0);
+                                                        const diff = planned - actual;
+                                                        return (
+                                                            <td key={idx} className="month-cell" style={{ fontWeight: 600, color: diff >= 0 ? '#34C759' : '#FF3B30' }}>
+                                                                {diff >= 0 ? '+' : '-'}${Math.round(Math.abs(diff)).toLocaleString()}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="month-cell" style={{ fontWeight: 600, background: '#FFF8F0' }}>
+                                                        {(() => {
+                                                            const actualQ1 = HAINES_ACTUAL_SPEND[selectedLocation].q1Total;
+                                                            const plannedQ1 = items.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0);
+                                                            const diff = plannedQ1 - actualQ1;
+                                                            return <span style={{ color: diff >= 0 ? '#34C759' : '#FF3B30' }}>{diff >= 0 ? '+' : '-'}${Math.round(Math.abs(diff)).toLocaleString()}</span>;
+                                                        })()}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', padding: '48px', color: '#86868B' }}>
+                                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📊</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 500 }}>Select a specific brand to see vendor spend</div>
+                                            <div style={{ fontSize: '13px', marginTop: '4px' }}>Choose LEVEL, TITAN, TRADEMARK, PAPPAS, or PRO above</div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* All Brands Q1 Summary */}
+                                <div className="table-card">
+                                    <div className="table-title" style={{ marginBottom: '20px' }}>All Brands - Q1 Actual vs Allocation Summary</div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Brand</th>
+                                                <th style={{ textAlign: 'right' }}>Q1 Allocated</th>
+                                                <th style={{ textAlign: 'right' }}>Q1 Planned</th>
+                                                <th style={{ textAlign: 'right', color: '#FF9500' }}>Q1 Actual</th>
+                                                <th style={{ textAlign: 'right' }}>Variance</th>
+                                                <th style={{ textAlign: 'right' }}>% of Allocation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {LOCATIONS.map(loc => {
+                                                const locData = locationData[loc];
+                                                const actualData = HAINES_ACTUAL_SPEND[loc];
+                                                const q1Alloc = locData.allocations[0] + locData.allocations[1] + locData.allocations[2];
+                                                const q1Planned = locData.items.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0);
+                                                const q1Actual = actualData ? actualData.q1Total : 0;
+                                                const variance = q1Alloc - q1Actual;
+                                                const pctUsed = q1Alloc ? Math.round((q1Actual / q1Alloc) * 100) : 0;
+                                                return (
+                                                    <tr key={loc} style={{ cursor: 'pointer' }} onClick={() => setSelectedLocation(loc)}>
+                                                        <td style={{ fontWeight: 600 }}>{loc}</td>
+                                                        <td className="month-cell">${q1Alloc.toLocaleString()}</td>
+                                                        <td className="month-cell">${q1Planned.toLocaleString()}</td>
+                                                        <td className="month-cell" style={{ fontWeight: 600, color: '#FF9500' }}>${Math.round(q1Actual).toLocaleString()}</td>
+                                                        <td className="month-cell" style={{ fontWeight: 600, color: variance >= 0 ? '#34C759' : '#FF3B30' }}>
+                                                            {variance >= 0 ? '+' : '-'}${Math.round(Math.abs(variance)).toLocaleString()}
+                                                        </td>
+                                                        <td className="month-cell">
+                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                                                                <div style={{ width: '60px', height: '6px', background: '#E5E5EA', borderRadius: '3px', overflow: 'hidden' }}>
+                                                                    <div style={{ width: `${Math.min(pctUsed, 100)}%`, height: '100%', background: pctUsed > 100 ? '#FF3B30' : pctUsed > 80 ? '#FF9500' : '#34C759', borderRadius: '3px' }}></div>
+                                                                </div>
+                                                                <span style={{ fontSize: '12px', fontWeight: 600 }}>{pctUsed}%</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            <tr className="total-row" style={{ borderTop: '2px solid #1D1D1F' }}>
+                                                <td style={{ fontWeight: 700 }}>TOTAL</td>
+                                                <td className="month-cell" style={{ fontWeight: 700 }}>
+                                                    ${LOCATIONS.reduce((sum, loc) => sum + locationData[loc].allocations[0] + locationData[loc].allocations[1] + locationData[loc].allocations[2], 0).toLocaleString()}
+                                                </td>
+                                                <td className="month-cell" style={{ fontWeight: 700 }}>
+                                                    ${LOCATIONS.reduce((sum, loc) => sum + locationData[loc].items.reduce((s, item) => s + item.months[0] + item.months[1] + item.months[2], 0), 0).toLocaleString()}
+                                                </td>
+                                                <td className="month-cell" style={{ fontWeight: 700, color: '#FF9500' }}>
+                                                    ${Math.round(LOCATIONS.reduce((sum, loc) => sum + (HAINES_ACTUAL_SPEND[loc] ? HAINES_ACTUAL_SPEND[loc].q1Total : 0), 0)).toLocaleString()}
+                                                </td>
+                                                <td className="month-cell" style={{ fontWeight: 700 }}>
+                                                    {(() => {
+                                                        const totalAlloc = LOCATIONS.reduce((sum, loc) => sum + locationData[loc].allocations[0] + locationData[loc].allocations[1] + locationData[loc].allocations[2], 0);
+                                                        const totalActual = LOCATIONS.reduce((sum, loc) => sum + (HAINES_ACTUAL_SPEND[loc] ? HAINES_ACTUAL_SPEND[loc].q1Total : 0), 0);
+                                                        const v = totalAlloc - totalActual;
+                                                        return <span style={{ color: v >= 0 ? '#34C759' : '#FF3B30' }}>{v >= 0 ? '+' : '-'}${Math.round(Math.abs(v)).toLocaleString()}</span>;
+                                                    })()}
+                                                </td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'allocation' && (
+                            <div className="table-card">
+                                <div className="table-title" style={{ marginBottom: '20px' }}>Monthly Allocation - {selectedLocation}</div>
+                                <table className="allocation-table">
+                                    <thead>
+                                        <tr>
+                                            {MONTHS.map(month => (
+                                                <th key={month}>{month}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            {currentLocationData.allocations.map((alloc, idx) => (
+                                                <td key={idx} style={{ textAlign: 'center' }}>
+                                                    <input
+                                                        type="number"
+                                                        value={alloc}
+                                                        onChange={(e) => handleAllocationEdit(idx, e.target.value)}
+                                                        style={{ textAlign: 'center' }}
+                                                    />
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div style={{ marginTop: '20px', fontSize: '14px', color: '#8E8E93' }}>
+                                    <div>Total Annual: ${currentLocationData.allocations.reduce((a, b) => a + b, 0).toLocaleString()}</div>
+                                    <div>Revenue Target: ${currentLocationData.revenue.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ═══════ EXPENSES TAB ═══════ */}
+                    {activeTab === 'expenses' && (
+                        <div className="content-area">
+                            {/* Expense KPI cards */}
+                            <div className="kpi-row">
+                                <div className="kpi-card" style={{ borderLeft: '4px solid #34C759' }}>
+                                    <div className="kpi-label">TOTAL EXPENSES</div>
+                                    <div className="kpi-value" style={{ color: '#34C759' }}>${expenses.reduce((s, e) => s + e.amount, 0).toLocaleString()}</div>
+                                    <div className="kpi-subtitle">{expenses.length} transactions</div>
+                                </div>
+                                {LOCATIONS.map(loc => (
+                                    <div key={loc} className="kpi-card" style={{ borderLeft: '4px solid #007AFF', flex: '1', minWidth: '140px' }}>
+                                        <div className="kpi-label">{loc}</div>
+                                        <div className="kpi-value" style={{ fontSize: '20px' }}>${expenses.filter(e => e.branch === loc).reduce((s, e) => s + e.amount, 0).toLocaleString()}</div>
+                                        <div className="kpi-subtitle">{expenses.filter(e => e.branch === loc).length} items</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* CSV Upload drop zone + manual entry button */}
+                            <div className="card" style={{ marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', gap: '16px', alignItems: 'stretch' }}>
+                                    <div
+                                        onDragOver={(e) => { e.preventDefault(); setCsvDragOver(true); }}
+                                        onDragLeave={() => setCsvDragOver(false)}
+                                        onDrop={(e) => { e.preventDefault(); setCsvDragOver(false); const file = e.dataTransfer.files[0]; if (file) uploadExpenseCsv(file); }}
+                                        onClick={() => { const inp = document.createElement('input'); inp.type='file'; inp.accept='.csv'; inp.onchange = (e) => { if(e.target.files[0]) uploadExpenseCsv(e.target.files[0]); }; inp.click(); }}
+                                        style={{ flex: 1, border: csvDragOver ? '2px dashed #007AFF' : '2px dashed #D2D2D7', borderRadius: '12px', padding: '32px', textAlign: 'center', cursor: 'pointer', background: csvDragOver ? '#F0F7FF' : '#FAFAFA', transition: 'all 0.2s' }}
+                                    >
+                                        <div style={{ fontSize: '32px', marginBottom: '8px' }}>📄</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 600, color: '#1D1D1F' }}>Drop CSV here or click to upload</div>
+                                        <div style={{ fontSize: '12px', color: '#86868B', marginTop: '4px' }}>AI will auto-classify each expense to the right branch</div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowExpenseModal(true)}
+                                        style={{ padding: '20px 32px', background: '#34C759', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: '160px' }}
+                                    >
+                                        <span style={{ fontSize: '24px' }}>+</span>
+                                        <span>Add Expense</span>
+                                    </button>
+                                </div>
+                                {expenseLoading && (
+                                    <div style={{ textAlign: 'center', padding: '16px', color: '#007AFF', fontWeight: 500 }}>
+                                        Classifying expenses with AI...
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Expense table */}
+                            <div className="card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                    <div className="table-title">Classified Expenses</div>
+                                    <div style={{ fontSize: '13px', color: '#86868B' }}>{expenses.length} expenses</div>
+                                </div>
+                                {expenses.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '48px', color: '#86868B' }}>
+                                        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🧾</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 500 }}>No expenses yet</div>
+                                        <div style={{ fontSize: '13px', marginTop: '4px' }}>Upload a CSV or add expenses manually. AI will classify each one to the right branch.</div>
+                                    </div>
+                                ) : (
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table className="budget-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ textAlign: 'left', minWidth: '120px' }}>DATE</th>
+                                                    <th style={{ textAlign: 'left', minWidth: '160px' }}>DESCRIPTION</th>
+                                                    <th style={{ textAlign: 'left', minWidth: '120px' }}>VENDOR</th>
+                                                    <th style={{ textAlign: 'right', minWidth: '100px' }}>AMOUNT</th>
+                                                    <th style={{ textAlign: 'left', minWidth: '120px' }}>BRANCH</th>
+                                                    <th style={{ textAlign: 'left', minWidth: '100px' }}>MEDIA</th>
+                                                    <th style={{ textAlign: 'center', minWidth: '80px' }}>CONFIDENCE</th>
+                                                    <th style={{ textAlign: 'left', minWidth: '180px' }}>REASONING</th>
+                                                    <th style={{ width: '40px' }}></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {expenses.map(exp => (
+                                                    <tr key={exp.id}>
+                                                        <td style={{ textAlign: 'left', fontSize: '12px', color: '#86868B' }}>{exp.date}</td>
+                                                        <td style={{ textAlign: 'left', fontWeight: 500 }}>{exp.description}</td>
+                                                        <td style={{ textAlign: 'left', fontSize: '12px' }}>{exp.vendor}</td>
+                                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>${(exp.amount || 0).toLocaleString()}</td>
+                                                        <td style={{ textAlign: 'left' }}>
+                                                            <select
+                                                                value={exp.branch}
+                                                                onChange={(e) => updateExpenseBranch(exp.id, e.target.value)}
+                                                                style={{ padding: '4px 8px', border: '1px solid #E5E5EA', borderRadius: '6px', fontSize: '12px', fontWeight: 600, background: '#F5F5F7', cursor: 'pointer' }}
+                                                            >
+                                                                {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                                                                <option value="UNKNOWN">UNKNOWN</option>
+                                                            </select>
+                                                        </td>
+                                                        <td style={{ textAlign: 'left', fontSize: '12px' }}>{exp.mediaType}</td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 600,
+                                                                background: exp.confidence >= 0.8 ? '#E8F8ED' : exp.confidence >= 0.5 ? '#FFF8E6' : '#FFECEC',
+                                                                color: exp.confidence >= 0.8 ? '#34C759' : exp.confidence >= 0.5 ? '#FF9500' : '#FF3B30'
+                                                            }}>
+                                                                {Math.round((exp.confidence || 0) * 100)}%
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ textAlign: 'left', fontSize: '11px', color: '#86868B', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.reasoning}</td>
+                                                        <td>
+                                                            <button onClick={() => deleteExpense(exp.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#FF3B30', opacity: 0.5 }} title="Delete">×</button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* EXPENSE MODAL */}
+                    {showExpenseModal && (
+                        <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
+                            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-title">Add Expense</div>
+                                <div style={{ fontSize: '13px', color: '#86868B', marginBottom: '16px' }}>AI will auto-classify this to the right branch and media type.</div>
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <input type="text" className="form-input" placeholder="e.g., Google Ads March spend" value={expenseForm.description} onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Vendor</label>
+                                    <input type="text" className="form-input" placeholder="e.g., Scorpion" value={expenseForm.vendor} onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label className="form-label">Amount</label>
+                                        <input type="number" className="form-input" placeholder="0.00" value={expenseForm.amount} onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
+                                    </div>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label className="form-label">Date</label>
+                                        <input type="date" className="form-input" value={expenseForm.date} onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Memo / Notes</label>
+                                    <input type="text" className="form-input" placeholder="Any additional context for classification..." value={expenseForm.memo} onChange={(e) => setExpenseForm({ ...expenseForm, memo: e.target.value })} />
+                                </div>
+                                <div className="modal-buttons">
+                                    <button className="modal-btn modal-btn-primary" style={{ background: '#34C759' }} onClick={addExpense} disabled={expenseLoading}>
+                                        {expenseLoading ? 'Classifying...' : 'Add & Classify'}
+                                    </button>
+                                    <button className="modal-btn modal-btn-secondary" onClick={() => setShowExpenseModal(false)}>Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODALS */}
+                    {showSettingsModal && (
+                        <div className="modal-overlay" onClick={() => setShowSettingsModal(false)}>
+                            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-title">Google Sheets Settings</div>
+                                {LOCATIONS.map(loc => (
+                                    <div key={loc} className="settings-group">
+                                        <div className="settings-group-title">{loc}</div>
+                                        <input
+                                            type="text"
+                                            className="settings-group-input"
+                                            placeholder="Paste CSV export URL..."
+                                            value={googleSheetUrls[loc] || ''}
+                                            onChange={(e) => setGoogleSheetUrls({ ...googleSheetUrls, [loc]: e.target.value })}
+                                        />
+                                        <div className="settings-note">Get the URL from: File > Share > Publish to web (as CSV)</div>
+                                    </div>
+                                ))}
+                                <div className="modal-buttons">
+                                    <button className="modal-btn modal-btn-primary" onClick={() => setShowSettingsModal(false)}>Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showAddModal && (
+                        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+                            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-title">Add Line Item</div>
+                                <AddLineItemForm onAdd={addLineItem} onCancel={() => setShowAddModal(false)} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AddLineItemForm({ onAdd, onCancel }) {
+            const [form, setForm] = useState({
+                vendor: '',
+                publisher: '',
+                campaign: '',
+                media: '',
+                category: 'PROSPECT',
+                status: 'Active'
+            });
+
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">Vendor</label>
+                        <input type="text" className="form-input" value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Publisher</label>
+                        <input type="text" className="form-input" value={form.publisher} onChange={(e) => setForm({ ...form, publisher: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Campaign</label>
+                        <input type="text" className="form-input" value={form.campaign} onChange={(e) => setForm({ ...form, campaign: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Media Type</label>
+                        <select className="form-select" value={form.media} onChange={(e) => setForm({ ...form, media: e.target.value })}>
+                            <option>DIGITAL</option>
+                            <option>SOCIAL</option>
+                            <option>PRINT</option>
+                            <option>OOH</option>
+                            <option>TECHNOLOGY</option>
+                            <option>DIRECTORY</option>
+                            <option>DIRECT MAIL</option>
+                            <option>EVENTS</option>
+                            <option>MERCH</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Category</label>
+                        <select className="form-select" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                            <option>PROSPECT</option>
+                            <option>TECHNOLOGY</option>
+                            <option>ROOFING</option>
+                            <option>ALL</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Status</label>
+                        <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                            <option>Active</option>
+                            <option>Trial</option>
+                            <option>Unapproved</option>
+                            <option>Ended</option>
+                        </select>
+                    </div>
+                    <div className="modal-buttons">
+                        <button className="modal-btn modal-btn-primary" onClick={() => onAdd(form)}>Add Item</button>
+                        <button className="modal-btn modal-btn-secondary" onClick={onCancel}>Cancel</button>
+                    </div>
+                </>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<BudgetDashboard />);
+    </script>
+</body>
+</html>
