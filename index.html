@@ -528,6 +528,28 @@
             text-align: right;
         }
 
+        /* Forecast vs Actuals styles */
+        .fva-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .fva-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; color: #86868B; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E5E5EA; white-space: nowrap; }
+        .fva-table th.num { text-align: right; }
+        .fva-table td { padding: 6px 10px; border-bottom: 1px solid #F0F0F2; }
+        .fva-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .fva-table tr.total-row { background: #F5F5F7; font-weight: 700; border-top: 2px solid #E5E5EA; }
+        .fva-table tr.total-row td { padding: 10px; }
+        .fva-table tr.category-row td { background: #FAFAFA; font-weight: 600; font-size: 11px; text-transform: uppercase; color: #86868B; letter-spacing: 0.5px; padding: 10px; }
+        .variance-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .variance-under { background: #E8F5E9; color: #2E7D32; }
+        .variance-over { background: #FFEBEE; color: #C62828; }
+        .variance-even { background: #F5F5F7; color: #86868B; }
+        .fva-summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .fva-card { background: white; border: 1px solid #E5E5EA; border-radius: 12px; padding: 16px; }
+        .fva-card-label { font-size: 11px; font-weight: 600; color: #86868B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .fva-card-value { font-size: 24px; font-weight: 700; color: #1D1D1F; }
+        .fva-card-sub { font-size: 12px; margin-top: 4px; }
+        .fva-month-toggle { display: flex; gap: 4px; background: white; border: 1px solid #E5E5EA; border-radius: 8px; padding: 4px; margin-bottom: 16px; }
+        .fva-month-btn { padding: 6px 14px; border: none; background: transparent; cursor: pointer; border-radius: 6px; font-size: 13px; font-weight: 500; color: #8E8E93; transition: all 0.2s; }
+        .fva-month-btn.active { background: #007AFF; color: white; }
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -671,6 +693,55 @@
         const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC'];
         const LOCATIONS = ['LEVEL', 'TITAN', 'TRADEMARK', 'PAPPAS', 'PRO'];
+
+        // ── Actuals from R Haines BU Spend by Vendor (Jan-Mar 2026) ──
+        const ACTUALS_DATA = {
+            level: [
+                { vendor: 'Scorpion', category: 'PROSPECT', media_type: 'DIGITAL', jan: 6596, feb: 2496, mar: 7028.23 },
+                { vendor: 'GovAssist', category: 'OTHER', media_type: 'OTHER', jan: 9000, feb: 0, mar: 0 },
+                { vendor: 'Meta/Facebook', category: 'PROSPECT', media_type: 'SOCIAL', jan: 3913.26, feb: 2393, mar: 900 },
+                { vendor: 'Logic Digital Media', category: 'PROSPECT', media_type: 'DIGITAL', jan: 0, feb: 2315, mar: 3900 },
+                { vendor: 'Fanbasis', category: 'PROSPECT', media_type: 'SOCIAL', jan: 0, feb: 0, mar: 6200 },
+                { vendor: 'MarChex/CallCap', category: 'CALL TRACKING', media_type: 'TECHNOLOGY', jan: 320, feb: 320, mar: 320 },
+                { vendor: 'Py Uth Stuph', category: 'OTHER', media_type: 'OTHER', jan: 0, feb: 672.63, mar: 0 },
+                { vendor: 'Pindot Media', category: 'PROSPECT', media_type: 'DIGITAL', jan: 185.40, feb: 185.40, mar: 185.40 },
+                { vendor: 'SlickText', category: 'TECHNOLOGY', media_type: 'DIGITAL', jan: 29, feb: 29, mar: 29 }
+            ],
+            titan: [
+                { vendor: 'Google Ads', category: 'PROSPECT', media_type: 'DIGITAL', jan: 9440.90, feb: 9721.14, mar: 9921.63 },
+                { vendor: 'Scorpion', category: 'PROSPECT', media_type: 'DIGITAL', jan: 8999, feb: 5395.83, mar: 12417.11 },
+                { vendor: 'Maverick Lead Gen', category: 'PROSPECT', media_type: 'DIGITAL', jan: 0, feb: 0, mar: 5000 },
+                { vendor: 'Hatch', category: 'TECHNOLOGY', media_type: 'TECHNOLOGY', jan: 1284.15, feb: 1284.15, mar: 1284.15 },
+                { vendor: 'MarChex/CallCap', category: 'CALL TRACKING', media_type: 'TECHNOLOGY', jan: 260, feb: 260, mar: 260 },
+                { vendor: 'Squarespace', category: 'TECHNOLOGY', media_type: 'TECHNOLOGY', jan: 0, feb: 24, mar: 276 }
+            ],
+            trademark: [
+                { vendor: 'Scorpion', category: 'PROSPECT', media_type: 'DIGITAL', jan: 12999, feb: 8249, mar: 17850.94 },
+                { vendor: 'Google Ads', category: 'PROSPECT', media_type: 'DIGITAL', jan: 10252.68, feb: 11595.96, mar: 15346.62 },
+                { vendor: 'Minuteman Press', category: 'DESIGN COLLATERAL', media_type: 'PRINT', jan: 2704.80, feb: 5958.28, mar: 1330.33 },
+                { vendor: 'Fanbasis', category: 'PROSPECT', media_type: 'SOCIAL', jan: 0, feb: 0, mar: 6200 },
+                { vendor: 'Hatch', category: 'TECHNOLOGY', media_type: 'TECHNOLOGY', jan: 1879.15, feb: 1879.15, mar: 1879.15 },
+                { vendor: 'MarChex/CallCap', category: 'CALL TRACKING', media_type: 'TECHNOLOGY', jan: 332, feb: 332, mar: 332 },
+                { vendor: 'Mailchimp', category: 'TECHNOLOGY', media_type: 'DIGITAL', jan: 45, feb: 45, mar: 45 }
+            ],
+            pappas: [
+                { vendor: 'Scorpion', category: 'PROSPECT', media_type: 'DIGITAL', jan: 12200, feb: 5000, mar: 9200 },
+                { vendor: 'Maverick Lead Gen', category: 'PROSPECT', media_type: 'DIGITAL', jan: 0, feb: 0, mar: 5000 },
+                { vendor: 'Professional Sports Publishing', category: 'PROSPECT', media_type: 'EVENTS', jan: 1792, feb: 1792, mar: 0 },
+                { vendor: 'Millet Printer', category: 'DESIGN COLLATERAL', media_type: 'PRINT', jan: 0, feb: 0, mar: 2145.51 },
+                { vendor: 'MarChex/CallCap', category: 'CALL TRACKING', media_type: 'TECHNOLOGY', jan: 258, feb: 258, mar: 284 },
+                { vendor: 'Mailchimp', category: 'TECHNOLOGY', media_type: 'DIGITAL', jan: 114.75, feb: 114.75, mar: 114.75 }
+            ],
+            pro: [
+                { vendor: 'Google Ads', category: 'PROSPECT', media_type: 'DIGITAL', jan: 6677.63, feb: 6433.41, mar: 10427.61 },
+                { vendor: 'Meta/Facebook', category: 'PROSPECT', media_type: 'SOCIAL', jan: 7201.53, feb: 4830.34, mar: 9209.52 },
+                { vendor: 'Kala Presence', category: 'PROSPECT', media_type: 'DIGITAL', jan: 6300, feb: 6300, mar: 6300 },
+                { vendor: 'Py Uth Stuph', category: 'OTHER', media_type: 'OTHER', jan: 0, feb: 9848.20, mar: 0 },
+                { vendor: 'Peacock Press', category: 'DESIGN COLLATERAL', media_type: 'PRINT', jan: 0, feb: 0, mar: 3246.91 },
+                { vendor: 'WhatConverts', category: 'CALL TRACKING', media_type: 'TECHNOLOGY', jan: 222.39, feb: 244.49, mar: 246.87 },
+                { vendor: 'FX Fee', category: 'OTHER', media_type: 'OTHER', jan: 63.42, feb: 63.42, mar: 63.42 }
+            ]
+        };
         const CATEGORIES = {
             'PROSPECT': '#007AFF',
             'TECHNOLOGY': '#8E8E93',
@@ -872,6 +943,10 @@
             const [items, setItems] = useState(EMBEDDED_DATA['LEVEL'].items.map(i => ({ ...i })));
             const [syncStatus, setSyncStatus] = useState('loading');
             const [stormConfig, setStormConfig] = useState({level:[4,5,6,7,8],titan:[4,5,6,7,8],trademark:[4,5,6,7,8],pappas:[4,5,6,7,8],pro:[4,5,6,7,8]});
+            const [expenses, setExpenses] = useState([]);
+            const [expenseForm, setExpenseForm] = useState({ date: '', vendor: '', description: '', amount: '', notes: '' });
+            const [classifying, setClassifying] = useState(false);
+            const [pendingExpenses, setPendingExpenses] = useState([]);
             const selectedLocationRef = useRef('LEVEL');
 
             useEffect(() => {
@@ -881,6 +956,7 @@
             // Ã¢ÂÂÃ¢ÂÂ Load from Apps Script on mount Ã¢ÂÂÃ¢ÂÂ
             useEffect(() => {
                 loadFromBackend();
+                loadExpenses();
             }, []);
 
             async function loadFromBackend() {
@@ -950,6 +1026,101 @@
                 } catch (e) {
                     console.error('Error parsing backend data:', e);
                     setSyncStatus('offline');
+                }
+            }
+
+            // ── Expense functions ──
+            const SERVER_URL = window.location.port === '3001' ? '' : 'http://localhost:3001';
+
+            async function loadExpenses() {
+                const data = await fetchAPI('getExpenses');
+                if (data && data.expenses) setExpenses(data.expenses);
+            }
+
+            async function classifyAndAdd(expenseData) {
+                setClassifying(true);
+                try {
+                    const r = await fetch(SERVER_URL + '/api/expenses/classify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(expenseData)
+                    });
+                    const classified = await r.json();
+                    return classified;
+                } catch (e) {
+                    console.error('Classification error:', e);
+                    return { ...expenseData, brand_id: selectedLocation.toLowerCase(), category: 'OTHER', media_type: 'OTHER' };
+                } finally {
+                    setClassifying(false);
+                }
+            }
+
+            async function handleAddExpense(e) {
+                e.preventDefault();
+                const classified = await classifyAndAdd(expenseForm);
+                const expense = { ...expenseForm, ...classified };
+                const result = await postAPI('addExpense', expense);
+                if (result && result.success) {
+                    setExpenses([...expenses, { ...expense, id: result.id }]);
+                    setExpenseForm({ date: '', vendor: '', description: '', amount: '', notes: '' });
+                }
+            }
+
+            async function handleCSVUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                setClassifying(true);
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const r = await fetch(SERVER_URL + '/api/expenses/upload', { method: 'POST', body: formData });
+                    const data = await r.json();
+                    if (data.classified) {
+                        setPendingExpenses(data.classified);
+                    }
+                } catch (err) {
+                    console.error('CSV upload error:', err);
+                    const text = await file.text();
+                    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+                    const rows = parsed.data.map(r => ({
+                        date: r.Date || r.date || '',
+                        vendor: r.Vendor || r.vendor || r.Merchant || '',
+                        description: r.Description || r.description || r.Memo || '',
+                        amount: parseFloat((r.Amount || r.amount || '0').replace(/[$,]/g, '')) || 0,
+                        brand_id: selectedLocation.toLowerCase(),
+                        category: 'OTHER',
+                        media_type: 'OTHER',
+                        classified_by: 'manual',
+                        notes: ''
+                    }));
+                    setPendingExpenses(rows);
+                } finally {
+                    setClassifying(false);
+                    e.target.value = '';
+                }
+            }
+
+            async function savePendingExpenses() {
+                setSyncStatus('syncing');
+                try {
+                    const r = await fetch(SERVER_URL + '/api/expenses/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ expenses: pendingExpenses })
+                    });
+                    const result = await r.json();
+                    if (result.success) {
+                        setExpenses([...expenses, ...pendingExpenses]);
+                        setPendingExpenses([]);
+                        setSyncStatus('synced');
+                    }
+                } catch (e) {
+                    for (const exp of pendingExpenses) {
+                        await postAPI('addExpense', exp);
+                    }
+                    setExpenses([...expenses, ...pendingExpenses]);
+                    setPendingExpenses([]);
+                    setSyncStatus('synced');
                 }
             }
 
@@ -1134,6 +1305,8 @@
                         <div className="nav-center">
                             <button className={`nav-tab ${activeTab === 'budget' ? 'active' : ''}`} onClick={() => setActiveTab('budget')}>Budget</button>
                             <button className={`nav-tab ${activeTab === 'allocation' ? 'active' : ''}`} onClick={() => setActiveTab('allocation')}>Allocation</button>
+                            <button className={`nav-tab ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')}>Expenses</button>
+                            <button className={`nav-tab ${activeTab === 'actuals' ? 'active' : ''}`} onClick={() => setActiveTab('actuals')}>Forecast vs Actuals</button>
                         </div>
                         <div className="nav-right">
                             <span className="hint-text">Double-click any cell to edit</span>
@@ -1332,6 +1505,123 @@
                                 </div>
                             </div>
                         )}
+
+                        {activeTab === 'expenses' && (
+                            <>
+                                <div className="table-card" style={{ marginBottom: '20px' }}>
+                                    <div className="table-header">
+                                        <div className="table-title">Add Expense</div>
+                                        <label className="add-btn" style={{ cursor: 'pointer' }}>
+                                            Upload CSV
+                                            <input type="file" accept=".csv" onChange={handleCSVUpload} style={{ display: 'none' }} />
+                                        </label>
+                                    </div>
+                                    <form onSubmit={handleAddExpense} style={{ display: 'flex', gap: '8px', padding: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                        <div style={{ flex: '0 0 120px' }}>
+                                            <div style={{ fontSize: '11px', color: '#86868B', marginBottom: '4px' }}>Date</div>
+                                            <input type="date" value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} required style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E5EA', borderRadius: '6px', fontSize: '13px' }} />
+                                        </div>
+                                        <div style={{ flex: '1', minWidth: '140px' }}>
+                                            <div style={{ fontSize: '11px', color: '#86868B', marginBottom: '4px' }}>Vendor</div>
+                                            <input type="text" value={expenseForm.vendor} onChange={e => setExpenseForm({...expenseForm, vendor: e.target.value})} required placeholder="e.g. SCORPION" style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E5EA', borderRadius: '6px', fontSize: '13px' }} />
+                                        </div>
+                                        <div style={{ flex: '2', minWidth: '200px' }}>
+                                            <div style={{ fontSize: '11px', color: '#86868B', marginBottom: '4px' }}>Description</div>
+                                            <input type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} placeholder="Google Ads - March" style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E5EA', borderRadius: '6px', fontSize: '13px' }} />
+                                        </div>
+                                        <div style={{ flex: '0 0 100px' }}>
+                                            <div style={{ fontSize: '11px', color: '#86868B', marginBottom: '4px' }}>Amount</div>
+                                            <input type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} required placeholder="0.00" style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E5EA', borderRadius: '6px', fontSize: '13px' }} />
+                                        </div>
+                                        <div style={{ flex: '1', minWidth: '120px' }}>
+                                            <div style={{ fontSize: '11px', color: '#86868B', marginBottom: '4px' }}>Notes</div>
+                                            <input type="text" value={expenseForm.notes} onChange={e => setExpenseForm({...expenseForm, notes: e.target.value})} placeholder="Optional" style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E5EA', borderRadius: '6px', fontSize: '13px' }} />
+                                        </div>
+                                        <button type="submit" disabled={classifying} className="add-btn" style={{ whiteSpace: 'nowrap' }}>
+                                            {classifying ? 'Classifying...' : '+ Add & Classify'}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                {pendingExpenses.length > 0 && (
+                                    <div className="table-card" style={{ marginBottom: '20px', border: '2px solid #FF9500' }}>
+                                        <div className="table-header">
+                                            <div className="table-title" style={{ color: '#FF9500' }}>Review Classified Expenses ({pendingExpenses.length})</div>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button className="add-btn" style={{ background: '#FF3B30', color: 'white', border: 'none' }} onClick={() => setPendingExpenses([])}>Discard</button>
+                                                <button className="add-btn" style={{ background: '#34C759', color: 'white', border: 'none' }} onClick={savePendingExpenses}>Save All</button>
+                                            </div>
+                                        </div>
+                                        <table>
+                                            <thead>
+                                                <tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Branch</th><th>Category</th><th>Confidence</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {pendingExpenses.map((exp, idx) => (
+                                                    <tr key={idx}>
+                                                        <td style={{ fontSize: '12px' }}>{exp.date}</td>
+                                                        <td style={{ fontWeight: 600, fontSize: '12px' }}>{exp.vendor}</td>
+                                                        <td style={{ fontSize: '12px' }}>{exp.description}</td>
+                                                        <td style={{ fontSize: '12px', textAlign: 'right' }}>${parseFloat(exp.amount || 0).toLocaleString()}</td>
+                                                        <td>
+                                                            <select value={exp.brand_id} onChange={e => { const u = [...pendingExpenses]; u[idx] = { ...u[idx], brand_id: e.target.value }; setPendingExpenses(u); }} style={{ padding: '4px', fontSize: '11px', borderRadius: '4px', border: '1px solid #E5E5EA' }}>
+                                                                <option value="unknown">unknown</option>
+                                                                {LOCATIONS.map(l => <option key={l} value={l.toLowerCase()}>{l}</option>)}
+                                                            </select>
+                                                        </td>
+                                                        <td style={{ fontSize: '11px' }}>{exp.category}</td>
+                                                        <td><span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 600, background: exp.confidence === 'high' ? '#E8F5E9' : exp.confidence === 'medium' ? '#FFF3E0' : '#FFEBEE', color: exp.confidence === 'high' ? '#2E7D32' : exp.confidence === 'medium' ? '#E65100' : '#C62828' }}>{exp.confidence || 'n/a'}</span></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+
+                                <div className="table-card">
+                                    <div className="table-header">
+                                        <div className="table-title">Expense History - {selectedLocation}</div>
+                                        <div style={{ fontSize: '13px', color: '#86868B' }}>
+                                            {expenses.filter(e => (e.brand_id || '').toUpperCase() === selectedLocation).length} items |&nbsp;
+                                            ${expenses.filter(e => (e.brand_id || '').toUpperCase() === selectedLocation).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0).toLocaleString()} total
+                                        </div>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr><th>Date</th><th>Vendor</th><th>Description</th><th>Category</th><th>Amount</th><th>Source</th><th>Notes</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {expenses
+                                                .filter(e => (e.brand_id || '').toUpperCase() === selectedLocation)
+                                                .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+                                                .map((exp, idx) => (
+                                                <tr key={exp.id || idx}>
+                                                    <td style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>{exp.date}</td>
+                                                    <td style={{ fontWeight: 600, fontSize: '12px' }}>{exp.vendor}</td>
+                                                    <td style={{ fontSize: '12px' }}>{exp.description}</td>
+                                                    <td><span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '10px', background: '#F5F5F7' }}>{exp.category}</span></td>
+                                                    <td style={{ fontSize: '12px', textAlign: 'right', fontWeight: 600 }}>${parseFloat(exp.amount || 0).toLocaleString()}</td>
+                                                    <td style={{ fontSize: '10px', color: '#86868B' }}>{exp.classified_by || 'manual'}</td>
+                                                    <td style={{ fontSize: '11px', color: '#86868B' }}>{exp.notes}</td>
+                                                </tr>
+                                            ))}
+                                            {expenses.filter(e => (e.brand_id || '').toUpperCase() === selectedLocation).length === 0 && (
+                                                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#86868B', fontSize: '14px' }}>
+                                                    No expenses for {selectedLocation}. Add one above or upload a CSV.
+                                                </td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        )}
+                        {activeTab === 'actuals' && (
+                            <ForecastVsActuals
+                                locationData={locationData}
+                                selectedLocation={selectedLocation}
+                                stormConfig={stormConfig}
+                            />
+                        )}
                     </div>
 
                     {/* SETTINGS MODAL */}
@@ -1371,6 +1661,208 @@
                         </div>
                     )}
                 </div>
+            );
+        }
+
+        function ForecastVsActuals({ locationData, selectedLocation, stormConfig }) {
+            const [viewMode, setViewMode] = useState('monthly'); // 'monthly' or 'q1'
+            const [selectedFvaMonth, setSelectedFvaMonth] = useState(Math.min(new Date().getMonth(), 2)); // 0=Jan, 1=Feb, 2=Mar (only Q1 data available)
+
+            const brandKey = selectedLocation.toLowerCase();
+            const actuals = ACTUALS_DATA[brandKey] || [];
+            const budgetItems = (locationData[selectedLocation] || {}).items || [];
+            const allocations = (locationData[selectedLocation] || {}).allocations || [];
+
+            // Build forecast by vendor (aggregate budget line items by vendor)
+            const forecastByVendor = {};
+            budgetItems.forEach(item => {
+                const vKey = (item.vendor || 'UNASSIGNED').toUpperCase();
+                if (!forecastByVendor[vKey]) {
+                    forecastByVendor[vKey] = { vendor: vKey, category: item.category || item.media, months: [0,0,0,0,0,0,0,0,0,0,0,0] };
+                }
+                item.months.forEach((m, i) => { forecastByVendor[vKey].months[i] += m; });
+            });
+
+            // Build actuals by vendor
+            const actualsByVendor = {};
+            actuals.forEach(a => {
+                const vKey = a.vendor.toUpperCase();
+                actualsByVendor[vKey] = { vendor: a.vendor, category: a.category, jan: a.jan, feb: a.feb, mar: a.mar };
+            });
+
+            // Merge: all vendors from both forecast and actuals
+            const allVendors = new Set([...Object.keys(forecastByVendor), ...Object.keys(actualsByVendor)]);
+            const rows = [];
+            allVendors.forEach(vKey => {
+                const forecast = forecastByVendor[vKey];
+                const actual = actualsByVendor[vKey];
+                const fMonths = forecast ? forecast.months : [0,0,0,0,0,0,0,0,0,0,0,0];
+                const aMonths = [actual ? actual.jan : 0, actual ? actual.feb : 0, actual ? actual.mar : 0];
+                const category = (forecast && forecast.category) || (actual && actual.category) || 'OTHER';
+                rows.push({
+                    vendor: actual ? actual.vendor : (forecast ? forecast.vendor : vKey),
+                    category,
+                    forecast: fMonths,
+                    actuals: aMonths,
+                    forecastQ1: fMonths[0] + fMonths[1] + fMonths[2],
+                    actualsQ1: aMonths[0] + aMonths[1] + aMonths[2],
+                    hasActuals: !!actual,
+                    hasForecast: !!forecast
+                });
+            });
+
+            rows.sort((a, b) => b.actualsQ1 - a.actualsQ1);
+
+            // Totals
+            const totalForecastQ1 = rows.reduce((s, r) => s + r.forecastQ1, 0);
+            const totalActualsQ1 = rows.reduce((s, r) => s + r.actualsQ1, 0);
+            const totalVarianceQ1 = totalForecastQ1 - totalActualsQ1;
+
+            const mi = selectedFvaMonth;
+            const totalForecastMonth = rows.reduce((s, r) => s + r.forecast[mi], 0);
+            const totalActualsMonth = rows.reduce((s, r) => s + r.actuals[mi], 0);
+            const totalVarianceMonth = totalForecastMonth - totalActualsMonth;
+
+            const allocationQ1 = allocations[0] + allocations[1] + allocations[2];
+            const allocationMonth = allocations[mi] || 0;
+
+            function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+            function pct(variance, forecast) {
+                if (forecast === 0) return variance === 0 ? '0%' : 'N/A';
+                return Math.round((variance / forecast) * 100) + '%';
+            }
+            function variancePill(variance, forecast) {
+                const cls = variance > 0 ? 'variance-under' : variance < 0 ? 'variance-over' : 'variance-even';
+                const label = variance > 0 ? 'Under ' + pct(variance, forecast) : variance < 0 ? 'Over ' + pct(Math.abs(variance), forecast) : 'On budget';
+                return React.createElement('span', { className: 'variance-pill ' + cls }, label);
+            }
+
+            const monthNames = ['January', 'February', 'March'];
+            const isQ1 = viewMode === 'q1';
+
+            // Summary cards data
+            const displayForecast = isQ1 ? totalForecastQ1 : totalForecastMonth;
+            const displayActuals = isQ1 ? totalActualsQ1 : totalActualsMonth;
+            const displayVariance = isQ1 ? totalVarianceQ1 : totalVarianceMonth;
+            const displayAllocation = isQ1 ? allocationQ1 : allocationMonth;
+            const utilizationPct = displayAllocation > 0 ? Math.round((displayActuals / displayAllocation) * 100) : 0;
+
+            return React.createElement(React.Fragment, null,
+                // Summary cards
+                React.createElement('div', { className: 'fva-summary-cards' },
+                    React.createElement('div', { className: 'fva-card' },
+                        React.createElement('div', { className: 'fva-card-label' }, 'Budget Allocation'),
+                        React.createElement('div', { className: 'fva-card-value' }, fmt(displayAllocation)),
+                        React.createElement('div', { className: 'fva-card-sub', style: { color: '#86868B' } }, isQ1 ? 'Q1 Total' : monthNames[mi])
+                    ),
+                    React.createElement('div', { className: 'fva-card' },
+                        React.createElement('div', { className: 'fva-card-label' }, 'Planned (Line Items)'),
+                        React.createElement('div', { className: 'fva-card-value' }, fmt(displayForecast)),
+                        React.createElement('div', { className: 'fva-card-sub', style: { color: '#86868B' } }, 'Sum of budget line items')
+                    ),
+                    React.createElement('div', { className: 'fva-card' },
+                        React.createElement('div', { className: 'fva-card-label' }, 'Actual Spend'),
+                        React.createElement('div', { className: 'fva-card-value', style: { color: displayActuals > displayAllocation ? '#FF3B30' : '#1D1D1F' } }, fmt(displayActuals)),
+                        React.createElement('div', { className: 'fva-card-sub', style: { color: '#86868B' } }, utilizationPct + '% of allocation used')
+                    ),
+                    React.createElement('div', { className: 'fva-card' },
+                        React.createElement('div', { className: 'fva-card-label' }, 'Variance (Plan vs Actual)'),
+                        React.createElement('div', { className: 'fva-card-value', style: { color: displayVariance >= 0 ? '#34C759' : '#FF3B30' } }, (displayVariance >= 0 ? '+' : '') + fmt(displayVariance)),
+                        React.createElement('div', { className: 'fva-card-sub' }, variancePill(displayVariance, displayForecast))
+                    )
+                ),
+
+                // View toggle
+                React.createElement('div', { style: { display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' } },
+                    React.createElement('div', { className: 'fva-month-toggle' },
+                        React.createElement('button', { className: 'fva-month-btn ' + (viewMode === 'q1' ? 'active' : ''), onClick: () => setViewMode('q1') }, 'Q1 Total'),
+                        React.createElement('button', { className: 'fva-month-btn ' + (viewMode === 'monthly' ? 'active' : ''), onClick: () => setViewMode('monthly') }, 'By Month')
+                    ),
+                    viewMode === 'monthly' && React.createElement('div', { className: 'fva-month-toggle' },
+                        [0, 1, 2].map(m => React.createElement('button', { key: m, className: 'fva-month-btn ' + (selectedFvaMonth === m ? 'active' : ''), onClick: () => setSelectedFvaMonth(m) }, monthNames[m]))
+                    )
+                ),
+
+                // Detail table
+                React.createElement('div', { className: 'table-card' },
+                    React.createElement('div', { className: 'table-header' },
+                        React.createElement('div', { className: 'table-title' }, 'Forecast vs Actuals - ' + selectedLocation + (isQ1 ? ' (Q1 2026)' : ' (' + monthNames[mi] + ' 2026)')),
+                        React.createElement('div', { style: { fontSize: '12px', color: '#86868B' } }, 'Source: R Haines BU Spend by Vendor')
+                    ),
+                    isQ1 ?
+                    // Q1 view
+                    React.createElement('table', { className: 'fva-table' },
+                        React.createElement('thead', null,
+                            React.createElement('tr', null,
+                                React.createElement('th', null, 'Vendor'),
+                                React.createElement('th', null, 'Category'),
+                                React.createElement('th', { className: 'num' }, 'Forecast'),
+                                React.createElement('th', { className: 'num' }, 'Actual'),
+                                React.createElement('th', { className: 'num' }, 'Variance'),
+                                React.createElement('th', null, 'Status')
+                            )
+                        ),
+                        React.createElement('tbody', null,
+                            rows.map((r, idx) => {
+                                const v = r.forecastQ1 - r.actualsQ1;
+                                return React.createElement('tr', { key: idx, style: !r.hasForecast ? { background: '#FFF8E1' } : !r.hasActuals ? { opacity: 0.5 } : {} },
+                                    React.createElement('td', { style: { fontWeight: 600 } }, r.vendor, !r.hasForecast && React.createElement('span', { style: { fontSize: '10px', color: '#E65100', marginLeft: '6px' } }, 'NOT IN BUDGET')),
+                                    React.createElement('td', null, React.createElement('span', { style: { padding: '2px 8px', borderRadius: '10px', fontSize: '10px', background: '#F5F5F7' } }, r.category)),
+                                    React.createElement('td', { className: 'num' }, r.hasForecast ? fmt(r.forecastQ1) : '-'),
+                                    React.createElement('td', { className: 'num', style: { fontWeight: 600 } }, r.hasActuals ? fmt(r.actualsQ1) : '-'),
+                                    React.createElement('td', { className: 'num', style: { color: v >= 0 ? '#34C759' : '#FF3B30' } }, r.hasForecast && r.hasActuals ? (v >= 0 ? '+' : '') + fmt(v) : '-'),
+                                    React.createElement('td', null, r.hasForecast && r.hasActuals ? variancePill(v, r.forecastQ1) : !r.hasForecast ? React.createElement('span', { className: 'variance-pill variance-over' }, 'Unplanned') : React.createElement('span', { className: 'variance-pill variance-even' }, 'No actuals'))
+                                );
+                            }),
+                            React.createElement('tr', { className: 'total-row' },
+                                React.createElement('td', null, 'TOTAL'),
+                                React.createElement('td', null, ''),
+                                React.createElement('td', { className: 'num' }, fmt(totalForecastQ1)),
+                                React.createElement('td', { className: 'num' }, fmt(totalActualsQ1)),
+                                React.createElement('td', { className: 'num', style: { color: totalVarianceQ1 >= 0 ? '#34C759' : '#FF3B30' } }, (totalVarianceQ1 >= 0 ? '+' : '') + fmt(totalVarianceQ1)),
+                                React.createElement('td', null, variancePill(totalVarianceQ1, totalForecastQ1))
+                            )
+                        )
+                    )
+                    :
+                    // Monthly view
+                    React.createElement('table', { className: 'fva-table' },
+                        React.createElement('thead', null,
+                            React.createElement('tr', null,
+                                React.createElement('th', null, 'Vendor'),
+                                React.createElement('th', null, 'Category'),
+                                React.createElement('th', { className: 'num' }, 'Forecast'),
+                                React.createElement('th', { className: 'num' }, 'Actual'),
+                                React.createElement('th', { className: 'num' }, 'Variance'),
+                                React.createElement('th', null, 'Status')
+                            )
+                        ),
+                        React.createElement('tbody', null,
+                            rows.map((r, idx) => {
+                                const fVal = r.forecast[mi];
+                                const aVal = r.actuals[mi] || 0;
+                                const v = fVal - aVal;
+                                if (fVal === 0 && aVal === 0) return null;
+                                return React.createElement('tr', { key: idx, style: !r.hasForecast ? { background: '#FFF8E1' } : {} },
+                                    React.createElement('td', { style: { fontWeight: 600 } }, r.vendor, !r.hasForecast && React.createElement('span', { style: { fontSize: '10px', color: '#E65100', marginLeft: '6px' } }, 'NOT IN BUDGET')),
+                                    React.createElement('td', null, React.createElement('span', { style: { padding: '2px 8px', borderRadius: '10px', fontSize: '10px', background: '#F5F5F7' } }, r.category)),
+                                    React.createElement('td', { className: 'num' }, r.hasForecast && fVal > 0 ? fmt(fVal) : '-'),
+                                    React.createElement('td', { className: 'num', style: { fontWeight: 600 } }, aVal > 0 ? fmt(aVal) : '-'),
+                                    React.createElement('td', { className: 'num', style: { color: v >= 0 ? '#34C759' : '#FF3B30' } }, (fVal > 0 || aVal > 0) ? (v >= 0 ? '+' : '') + fmt(v) : '-'),
+                                    React.createElement('td', null, (fVal > 0 && aVal > 0) ? variancePill(v, fVal) : aVal > 0 && fVal === 0 ? React.createElement('span', { className: 'variance-pill variance-over' }, 'Unplanned') : React.createElement('span', { className: 'variance-pill variance-even' }, 'No actuals'))
+                                );
+                            }).filter(Boolean),
+                            React.createElement('tr', { className: 'total-row' },
+                                React.createElement('td', null, 'TOTAL'),
+                                React.createElement('td', null, ''),
+                                React.createElement('td', { className: 'num' }, fmt(totalForecastMonth)),
+                                React.createElement('td', { className: 'num' }, fmt(totalActualsMonth)),
+                                React.createElement('td', { className: 'num', style: { color: totalVarianceMonth >= 0 ? '#34C759' : '#FF3B30' } }, (totalVarianceMonth >= 0 ? '+' : '') + fmt(totalVarianceMonth)),
+                                React.createElement('td', null, variancePill(totalVarianceMonth, totalForecastMonth))
+                            )
+                        )
+                    )
+                )
             );
         }
 
