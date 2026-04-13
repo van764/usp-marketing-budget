@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USP Budget Dashboard 2026</title>
+    <title>USP Budget Dashboard 2026 v2</title>
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -25,6 +25,26 @@
         .container {
             max-width: 1600px;
             margin: 0 auto;
+        }
+
+        /* BUDGET ALERT BANNER */
+        .budget-alert-banner {
+            background: #FF3B30;
+            color: white;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .budget-alert-banner .alert-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
         }
 
         /* NAV */
@@ -678,6 +698,83 @@
             color: #8E8E93;
             margin-top: 8px;
         }
+
+        /* SPEND REQUEST STYLES */
+        .spend-request-form {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .spend-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .budget-impact-panel {
+            background: white;
+            border-radius: 16px;
+            border: 2px solid #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .budget-impact-panel.green-border { border-color: #34C759; }
+        .budget-impact-panel.yellow-border { border-color: #FF9500; }
+        .budget-impact-panel.red-border { border-color: #FF3B30; }
+
+        .impact-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #F0F0F0;
+            font-size: 14px;
+        }
+
+        .impact-row:last-child { border-bottom: none; }
+
+        .impact-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .request-status-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* PACE CARD */
+        .pace-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .pace-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #E5E5EA;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .pace-card.flagged {
+            border-color: #FF3B30;
+            border-width: 2px;
+        }
     </style>
 </head>
 <body>
@@ -696,13 +793,20 @@
             'ALL': '#AF52DE'
         };
 
-        // R. Haines BU Spend by Vendor - Actual Credit Card Spend (Q1 2026)
+        const BUDGET_CATEGORIES = ['PROSPECT', 'TECHNOLOGY', 'ROOFING', 'CALL TRACKING', 'DESIGN COLLATERAL', 'OTHER', 'ALL'];
+        const MEDIA_TYPES = ['DIGITAL', 'SOCIAL', 'DIRECTORY', 'OOH', 'DIRECT MAIL', 'PRINT', 'EVENTS', 'MERCH', 'TECHNOLOGY'];
+
+        // Current month index (April = 3)
+        const CURRENT_MONTH_IDX = 3;
+        const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+        // R. Haines BU Spend by Vendor - Actual Credit Card Spend (Q1 2026 + April)
         const HAINES_ACTUAL_SPEND = {
             LEVEL: {
-                totals: [20043.66, 8411.03, 18562.63, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                totals: [20043.66, 8411.03, 18562.63, 5100, 0, 0, 0, 0, 0, 0, 0, 0],
                 q1Total: 47017.32,
                 vendors: [
-                    { name: 'Scorpion', months: [6596, 2496, 7028.23, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Scorpion', months: [6596, 2496, 7028.23, 5100, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'GovAssist', months: [9000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Logic Digital Media', months: [0, 2315, 3900, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Fanbasis', months: [0, 0, 6200, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -714,11 +818,11 @@
                 ]
             },
             TITAN: {
-                totals: [19984.05, 16685.12, 29158.89, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                totals: [19984.05, 16685.12, 29158.89, 6999, 0, 0, 0, 0, 0, 0, 0, 0],
                 q1Total: 65828.06,
                 vendors: [
-                    { name: 'Scorpion', months: [8999, 5395.83, 12417.11, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                    { name: 'Google Ads', months: [9440.90, 9721.14, 9921.63, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Scorpion', months: [8999, 5395.83, 12417.11, 5499, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Google Ads', months: [9440.90, 9721.14, 9921.63, 1500, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Maverick Lead Gen', months: [0, 0, 5000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Hatch', months: [1284.15, 1284.15, 1284.15, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Marchex / CallCap', months: [260, 260, 260, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -726,11 +830,11 @@
                 ]
             },
             TRADEMARK: {
-                totals: [28212.63, 28059.39, 42984.04, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                totals: [28212.63, 28059.39, 42984.04, 6679.87, 0, 0, 0, 0, 0, 0, 0, 0],
                 q1Total: 99256.06,
                 vendors: [
-                    { name: 'Scorpion', months: [12999, 8249, 17850.94, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                    { name: 'Google Ads', months: [10252.68, 11595.96, 15346.62, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Scorpion', months: [12999, 8249, 17850.94, 4260.05, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Google Ads', months: [10252.68, 11595.96, 15346.62, 2419.82, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Minuteman Press', months: [2704.80, 5958.28, 1330.33, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Fanbasis', months: [0, 0, 6200, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Hatch', months: [1879.15, 1879.15, 1879.15, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -739,10 +843,10 @@
                 ]
             },
             PAPPAS: {
-                totals: [14364.75, 7164.75, 16744.26, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                totals: [14364.75, 7164.75, 16744.26, 4200, 0, 0, 0, 0, 0, 0, 0, 0],
                 q1Total: 38273.76,
                 vendors: [
-                    { name: 'Scorpion', months: [12200, 5000, 9200, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Scorpion', months: [12200, 5000, 9200, 4200, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Maverick Lead Gen', months: [0, 0, 5000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Pro Sports Publications', months: [1792, 1792, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Millet The Printer', months: [0, 0, 2145.51, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -751,15 +855,16 @@
                 ]
             },
             PRO: {
-                totals: [20464.97, 27719.86, 29494.33, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                totals: [20464.97, 27719.86, 29494.33, 6428.76, 0, 0, 0, 0, 0, 0, 0, 0],
                 q1Total: 77679.16,
                 vendors: [
-                    { name: 'Google Ads', months: [6677.63, 6433.41, 10427.61, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Google Ads', months: [6677.63, 6433.41, 10427.61, 1778.85, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Kala Presence', months: [6300, 6300, 6300, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'Meta (Facebook)', months: [7601.53, 4830.34, 9209.52, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'PayUth Stuph', months: [0, 9848.20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                    { name: 'Peacock Press', months: [0, 0, 3246.91, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                    { name: 'WhatConverts', months: [222.39, 244.49, 246.87, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Peacock Press', months: [0, 0, 3246.91, 3246.91, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'Facebook', months: [0, 0, 0, 1381.40, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    { name: 'WhatConverts', months: [222.39, 244.49, 246.87, 21.60, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { name: 'FX / Other Fees', months: [63.42, 63.42, 63.42, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
                 ]
             }
@@ -887,6 +992,13 @@
             }
         };
 
+        // Helper: get days elapsed in current month (April 2026, assume today = Apr 7)
+        function getDaysElapsed(monthIdx) {
+            if (monthIdx < CURRENT_MONTH_IDX) return DAYS_IN_MONTH[monthIdx]; // full month
+            if (monthIdx === CURRENT_MONTH_IDX) return 7; // April 7
+            return 0;
+        }
+
         function BudgetDashboard() {
             const [activeTab, setActiveTab] = useState('budget');
             const [selectedLocation, setSelectedLocation] = useState('LEVEL');
@@ -902,6 +1014,28 @@
             const [showExpenseModal, setShowExpenseModal] = useState(false);
             const [expenseForm, setExpenseForm] = useState({ description: '', vendor: '', amount: '', date: '', memo: '' });
             const [csvDragOver, setCsvDragOver] = useState(false);
+
+            // Spend Request state
+            const [spendRequests, setSpendRequests] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('usp_spend_requests');
+                    return saved ? JSON.parse(saved) : [];
+                } catch(e) { return []; }
+            });
+            const [spendForm, setSpendForm] = useState({
+                brand: 'LEVEL',
+                vendor: '',
+                description: '',
+                amount: '',
+                month: CURRENT_MONTH_IDX,
+                category: 'PROSPECT',
+                mediaType: 'DIGITAL'
+            });
+
+            // Persist spend requests
+            useEffect(() => {
+                localStorage.setItem('usp_spend_requests', JSON.stringify(spendRequests));
+            }, [spendRequests]);
 
             // Expense API calls
             const API_BASE = window.location.origin;
@@ -976,15 +1110,9 @@
 
             const parseGoogleSheetData = (rows, location) => {
                 if (rows.length < 4) return;
-
-                // Row 1: ALLOCATION
                 const allocRow = rows[0];
                 const allocations = MONTHS.map((_, i) => parseInt(allocRow[8 + i]) || 0);
-
-                // Row 2: REVENUE_TARGET
                 const revenueTarget = parseInt(rows[1][1]) || 0;
-
-                // Row 4+: Data rows
                 const newItems = [];
                 for (let i = 3; i < rows.length; i++) {
                     const row = rows[i];
@@ -999,16 +1127,10 @@
                         months
                     });
                 }
-
                 setLocationData(prev => ({
                     ...prev,
-                    [location]: {
-                        allocations,
-                        revenue: revenueTarget,
-                        items: newItems
-                    }
+                    [location]: { allocations, revenue: revenueTarget, items: newItems }
                 }));
-
                 if (location === selectedLocation) {
                     setItems(newItems);
                 }
@@ -1023,8 +1145,8 @@
             }, [selectedLocation, locationData]);
 
             const currentLocationData = locationData[selectedLocation];
-            const allocation = currentLocationData.allocations[selectedMonth];
-            const revenue = currentLocationData.revenue;
+            const allocation = currentLocationData ? currentLocationData.allocations[selectedMonth] : 0;
+            const revenue = currentLocationData ? currentLocationData.revenue : 0;
 
             // Calculate metrics
             const planned = items.reduce((sum, item) => sum + item.months[selectedMonth], 0);
@@ -1094,7 +1216,7 @@
             const monthlyTrendData = MONTHS.map((month, idx) => ({
                 month,
                 planned: items.reduce((sum, item) => sum + item.months[idx], 0),
-                allocation: currentLocationData.allocations[idx],
+                allocation: currentLocationData ? currentLocationData.allocations[idx] : 0,
                 actual: HAINES_ACTUAL_SPEND[selectedLocation] ? Math.round(HAINES_ACTUAL_SPEND[selectedLocation].totals[idx]) : 0
             }));
 
@@ -1121,8 +1243,98 @@
             const unapprovedCount = items.filter(i => i.status === 'Unapproved').length;
             const endedCount = items.filter(i => i.status === 'Ended').length;
 
+            // ===== BUDGET ALERTS =====
+            const budgetAlerts = [];
+            LOCATIONS.forEach(loc => {
+                const actual = HAINES_ACTUAL_SPEND[loc] ? HAINES_ACTUAL_SPEND[loc].totals[CURRENT_MONTH_IDX] : 0;
+                const alloc = locationData[loc] ? locationData[loc].allocations[CURRENT_MONTH_IDX] : 0;
+                if (actual > 0 && actual > alloc) {
+                    budgetAlerts.push({
+                        brand: loc,
+                        over: actual - alloc,
+                        actual: actual,
+                        allocated: alloc
+                    });
+                }
+            });
+
+            // ===== SPEND REQUEST FUNCTIONS =====
+            const submitSpendRequest = () => {
+                if (!spendForm.vendor || !spendForm.amount || !spendForm.description) return;
+                const newRequest = {
+                    id: Date.now(),
+                    date: new Date().toISOString().split('T')[0],
+                    brand: spendForm.brand,
+                    vendor: spendForm.vendor,
+                    description: spendForm.description,
+                    amount: parseFloat(spendForm.amount) || 0,
+                    month: parseInt(spendForm.month),
+                    category: spendForm.category,
+                    mediaType: spendForm.mediaType,
+                    status: 'Pending'
+                };
+                setSpendRequests(prev => [newRequest, ...prev]);
+                setSpendForm({ brand: 'LEVEL', vendor: '', description: '', amount: '', month: CURRENT_MONTH_IDX, category: 'PROSPECT', mediaType: 'DIGITAL' });
+            };
+
+            const cycleRequestStatus = (id) => {
+                const statuses = ['Pending', 'Approved', 'Denied'];
+                setSpendRequests(prev => prev.map(r => {
+                    if (r.id === id) {
+                        const nextIdx = (statuses.indexOf(r.status) + 1) % statuses.length;
+                        return { ...r, status: statuses[nextIdx] };
+                    }
+                    return r;
+                }));
+            };
+
+            const getSpendImpact = () => {
+                const amt = parseFloat(spendForm.amount) || 0;
+                if (amt <= 0) return null;
+                const brand = spendForm.brand;
+                const monthIdx = parseInt(spendForm.month);
+                const alloc = locationData[brand] ? locationData[brand].allocations[monthIdx] : 0;
+                const plannedSpend = locationData[brand] ? locationData[brand].items.reduce((sum, item) => sum + item.months[monthIdx], 0) : 0;
+                const actualSpend = HAINES_ACTUAL_SPEND[brand] ? HAINES_ACTUAL_SPEND[brand].totals[monthIdx] : 0;
+                const remainingBefore = alloc - Math.max(plannedSpend, actualSpend);
+                const remainingAfter = remainingBefore - amt;
+                const pctUsed = alloc > 0 ? ((Math.max(plannedSpend, actualSpend) + amt) / alloc) * 100 : 0;
+
+                let status = 'green';
+                if (pctUsed > 100) status = 'red';
+                else if (pctUsed > 90) status = 'yellow';
+
+                return { alloc, plannedSpend, actualSpend, remainingBefore, remainingAfter, status, pctUsed, amt, brand, monthIdx };
+            };
+
+            // Helper to check which months have actual data
+            const hasActualData = (loc, monthIdx) => {
+                return HAINES_ACTUAL_SPEND[loc] && HAINES_ACTUAL_SPEND[loc].totals[monthIdx] > 0;
+            };
+
+            // Max month with data for display
+            const getMaxDataMonth = (loc) => {
+                if (!HAINES_ACTUAL_SPEND[loc]) return -1;
+                for (let i = 11; i >= 0; i--) {
+                    if (HAINES_ACTUAL_SPEND[loc].totals[i] > 0) return i;
+                }
+                return -1;
+            };
+
             return (
                 <div className="container">
+                    {/* ===== BUDGET ALERTS BANNER ===== */}
+                    {budgetAlerts.length > 0 && (
+                        <div className="budget-alert-banner">
+                            <span>ALERT:</span>
+                            {budgetAlerts.map((a, i) => (
+                                <span key={i} className="alert-item">
+                                    {a.brand} is ${Math.round(a.over).toLocaleString()} over {MONTHS[CURRENT_MONTH_IDX]} allocation (${Math.round(a.actual).toLocaleString()} actual vs ${Math.round(a.allocated).toLocaleString()} allocated)
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
                     {/* NAV */}
                     <div className="nav">
                         <div className="nav-left">
@@ -1134,10 +1346,11 @@
                             <button className={`nav-tab ${activeTab === 'allocation' ? 'active' : ''}`} onClick={() => setActiveTab('allocation')}>Allocation</button>
                             <button className={`nav-tab ${activeTab === 'actuals' ? 'active' : ''}`} onClick={() => setActiveTab('actuals')} style={activeTab === 'actuals' ? { background: '#FF9500', color: '#fff' } : {}}>Actuals (Haines)</button>
                             <button className={`nav-tab ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')} style={activeTab === 'expenses' ? { background: '#34C759', color: '#fff' } : {}}>Expenses</button>
+                            <button className={`nav-tab ${activeTab === 'spend-request' ? 'active' : ''}`} onClick={() => setActiveTab('spend-request')} style={activeTab === 'spend-request' ? { background: '#FF3B30', color: '#fff' } : {}}>Spend Request</button>
                         </div>
                         <div className="nav-right">
                             <span className="hint-text">Double-click any cell to edit</span>
-                            <button className="settings-btn" onClick={() => setShowSettingsModal(true)}>⚙️</button>
+                            <button className="settings-btn" onClick={() => setShowSettingsModal(true)}>Settings</button>
                         </div>
                     </div>
 
@@ -1173,12 +1386,12 @@
                                     <div className={`kpi-card ${remaining >= 0 ? 'green' : 'red'}`}>
                                         <div className="kpi-label">Remaining</div>
                                         <div className={`kpi-value ${remaining >= 0 ? 'green' : 'red'}`}>${Math.abs(remaining || 0).toLocaleString()}</div>
-                                        <div className="kpi-subtitle">${Math.abs(remaining || 0).toLocaleString()} ${remaining >= 0 ? 'under' : 'over'} allocation</div>
+                                        <div className="kpi-subtitle">${Math.abs(remaining || 0).toLocaleString()} {remaining >= 0 ? 'under' : 'over'} allocation</div>
                                     </div>
                                     <div className="kpi-card orange">
-                                        <div className="kpi-label">Trial Spend · {MONTHS[selectedMonth]}</div>
+                                        <div className="kpi-label">Trial Spend - {MONTHS[selectedMonth]}</div>
                                         <div className="kpi-value orange">${(trialSpend || 0).toLocaleString()}</div>
-                                        <div className="kpi-subtitle">${(annualTrialSpend || 0).toLocaleString()} annual · {trialCount} items</div>
+                                        <div className="kpi-subtitle">${(annualTrialSpend || 0).toLocaleString()} annual - {trialCount} items</div>
                                     </div>
                                 </div>
 
@@ -1217,10 +1430,10 @@
                                         <tbody>
                                             {items.map((item, idx) => (
                                                 <tr key={idx} draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(e, idx)} onDrop={(e) => handleDrop(e, idx)} className={draggedRowIndex === idx ? 'dragging' : dropTarget === idx ? 'drag-over' : ''}>
-                                                    <td className="drag-handle">≡</td>
+                                                    <td className="drag-handle">=</td>
                                                     <td className="vendor-cell">
-                                                        <div className="vendor-name">{item.vendor || '—'}</div>
-                                                        <div className="vendor-subtitle">{item.publisher || '—'} • {item.campaign}</div>
+                                                        <div className="vendor-name">{item.vendor || '--'}</div>
+                                                        <div className="vendor-subtitle">{item.publisher || '--'} / {item.campaign}</div>
                                                     </td>
                                                     <td>
                                                         <div className="category-badge">
@@ -1234,7 +1447,6 @@
                                                                 className={`status-pill ${item.status.toLowerCase()}`}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    // Simple status cycle for demo
                                                                     const statuses = ['Active', 'Trial', 'Unapproved', 'Ended'];
                                                                     const nextStatus = statuses[(statuses.indexOf(item.status) + 1) % statuses.length];
                                                                     handleStatusChange(idx, nextStatus);
@@ -1255,7 +1467,7 @@
                                                                 }
                                                             }}
                                                         >
-                                                            {value ? `$${value.toLocaleString()}` : '—'}
+                                                            {value ? `$${value.toLocaleString()}` : '--'}
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1307,7 +1519,7 @@
                                                         const actual = HAINES_ACTUAL_SPEND[selectedLocation].totals[idx];
                                                         const alloc = currentLocationData.allocations[idx];
                                                         const variance = alloc - actual;
-                                                        if (idx > 2) return <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`} style={{ color: '#8E8E93' }}>---</td>;
+                                                        if (!hasActualData(selectedLocation, idx)) return <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`} style={{ color: '#8E8E93' }}>---</td>;
                                                         return (
                                                             <td key={idx} className={`month-cell ${idx === selectedMonth ? 'current' : ''}`} style={{ fontWeight: 600, color: variance >= 0 ? '#34C759' : '#FF3B30' }}>
                                                                 {variance >= 0 ? '+' : ''}{`$${Math.round(Math.abs(variance)).toLocaleString()}`}
@@ -1319,7 +1531,7 @@
                                         </tbody>
                                     </table>
                                     <div className="status-summary">
-                                        {items.length} items · {activeCount} active · {trialCount} trial · {unapprovedCount} unapproved · {endedCount} ended
+                                        {items.length} items - {activeCount} active - {trialCount} trial - {unapprovedCount} unapproved - {endedCount} ended
                                     </div>
                                 </div>
 
@@ -1358,6 +1570,7 @@
                             </>
                         )}
 
+                        {/* ===== ACTUALS TAB ===== */}
                         {activeTab === 'actuals' && (
                             <>
                                 {/* Actuals KPI Cards */}
@@ -1399,12 +1612,54 @@
                                     })()}
                                 </div>
 
+                                {/* ===== MONTHLY PACE CARDS (NEW) ===== */}
+                                <div style={{ marginBottom: '24px' }}>
+                                    <div className="table-title" style={{ marginBottom: '16px' }}>Monthly Pace - April 2026 (7 days elapsed)</div>
+                                    <div className="pace-cards">
+                                        {LOCATIONS.map(loc => {
+                                            const actual = HAINES_ACTUAL_SPEND[loc] ? HAINES_ACTUAL_SPEND[loc].totals[CURRENT_MONTH_IDX] : 0;
+                                            const alloc = locationData[loc] ? locationData[loc].allocations[CURRENT_MONTH_IDX] : 0;
+                                            const daysElapsed = getDaysElapsed(CURRENT_MONTH_IDX);
+                                            const daysInMonth = DAYS_IN_MONTH[CURRENT_MONTH_IDX];
+                                            const projected = daysElapsed > 0 ? (actual / daysElapsed) * daysInMonth : 0;
+                                            const flagged = projected > alloc;
+                                            return (
+                                                <div key={loc} className={`pace-card ${flagged ? 'flagged' : ''}`}>
+                                                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#8E8E93', textTransform: 'uppercase', marginBottom: '8px' }}>{loc}</div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                        <span style={{ fontSize: '12px', color: '#8E8E93' }}>Actual (7 days)</span>
+                                                        <span style={{ fontSize: '14px', fontWeight: 600 }}>${Math.round(actual).toLocaleString()}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                        <span style={{ fontSize: '12px', color: '#8E8E93' }}>Projected (30 days)</span>
+                                                        <span style={{ fontSize: '14px', fontWeight: 700, color: flagged ? '#FF3B30' : '#1D1D1F' }}>${Math.round(projected).toLocaleString()}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                        <span style={{ fontSize: '12px', color: '#8E8E93' }}>Allocation</span>
+                                                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#007AFF' }}>${Math.round(alloc).toLocaleString()}</span>
+                                                    </div>
+                                                    {flagged && (
+                                                        <div style={{ background: '#FFECEC', color: '#FF3B30', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, textAlign: 'center' }}>
+                                                            PROJECTED OVER by ${Math.round(projected - alloc).toLocaleString()}
+                                                        </div>
+                                                    )}
+                                                    {!flagged && actual > 0 && (
+                                                        <div style={{ background: '#E8F8ED', color: '#34C759', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, textAlign: 'center' }}>
+                                                            On pace - ${Math.round(alloc - projected).toLocaleString()} under
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
                                 {/* Vendor Spend Breakdown Table */}
                                 <div className="table-card">
                                     <div className="table-header">
                                         <div className="table-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#FF9500' }}></span>
-                                            R. Haines Vendor Spend - {selectedLocation} (Q1 2026)
+                                            R. Haines Vendor Spend - {selectedLocation} (2026)
                                         </div>
                                         <div style={{ fontSize: '12px', color: '#8E8E93' }}>Source: BU Spend by Vendor.xlsx</div>
                                     </div>
@@ -1413,11 +1668,14 @@
                                             <thead>
                                                 <tr>
                                                     <th style={{ width: '250px' }}>Vendor</th>
-                                                    {MONTHS.map((month, idx) => (
-                                                        <th key={month} style={{ textAlign: 'right', background: idx < 3 ? '#FFF8F0' : 'transparent', color: idx < 3 ? '#FF9500' : '#8E8E93' }}>
-                                                            {month}
-                                                        </th>
-                                                    ))}
+                                                    {MONTHS.map((month, idx) => {
+                                                        const hasData = hasActualData(selectedLocation, idx);
+                                                        return (
+                                                            <th key={month} style={{ textAlign: 'right', background: hasData ? '#FFF8F0' : 'transparent', color: hasData ? '#FF9500' : '#8E8E93' }}>
+                                                                {month}
+                                                            </th>
+                                                        );
+                                                    })}
                                                     <th style={{ textAlign: 'right', background: '#FFF3E0', color: '#E65100', fontWeight: 700 }}>Q1 TOTAL</th>
                                                 </tr>
                                             </thead>
@@ -1447,23 +1705,61 @@
                                                     </td>
                                                 </tr>
                                                 <tr className="allocation-row">
-                                                    <td>PLANNED</td>
+                                                    <td>ALLOCATION</td>
                                                     {MONTHS.map((_, idx) => (
                                                         <td key={idx} className="month-cell">
-                                                            ${items.reduce((sum, item) => sum + item.months[idx], 0).toLocaleString()}
+                                                            ${locationData[selectedLocation] ? locationData[selectedLocation].allocations[idx].toLocaleString() : '---'}
                                                         </td>
                                                     ))}
                                                     <td className="month-cell" style={{ fontWeight: 600 }}>
-                                                        ${items.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0).toLocaleString()}
+                                                        ${locationData[selectedLocation] ? (locationData[selectedLocation].allocations[0] + locationData[selectedLocation].allocations[1] + locationData[selectedLocation].allocations[2]).toLocaleString() : '---'}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: 600 }}>PLANNED</td>
+                                                    {MONTHS.map((_, idx) => {
+                                                        const locItems = locationData[selectedLocation] ? locationData[selectedLocation].items : [];
+                                                        return (
+                                                            <td key={idx} className="month-cell">
+                                                                ${locItems.reduce((sum, item) => sum + item.months[idx], 0).toLocaleString()}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="month-cell" style={{ fontWeight: 600 }}>
+                                                        ${(locationData[selectedLocation] ? locationData[selectedLocation].items : []).reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                                {/* NEW: VARIANCE (ACTUAL vs BUDGET/ALLOCATION) */}
+                                                <tr style={{ background: '#F0FFF0', borderTop: '2px solid #34C759' }}>
+                                                    <td style={{ fontWeight: 700, color: '#1D1D1F' }}>VARIANCE (ACTUAL vs BUDGET)</td>
+                                                    {MONTHS.map((_, idx) => {
+                                                        const actual = HAINES_ACTUAL_SPEND[selectedLocation].totals[idx];
+                                                        const alloc = locationData[selectedLocation] ? locationData[selectedLocation].allocations[idx] : 0;
+                                                        const variance = alloc - actual;
+                                                        if (!hasActualData(selectedLocation, idx)) return <td key={idx} className="month-cell" style={{ color: '#D1D1D6' }}>---</td>;
+                                                        return (
+                                                            <td key={idx} className="month-cell" style={{ fontWeight: 700, color: variance >= 0 ? '#34C759' : '#FF3B30' }}>
+                                                                {variance >= 0 ? '+' : '-'}${Math.round(Math.abs(variance)).toLocaleString()}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="month-cell" style={{ fontWeight: 700, background: '#F0FFF0' }}>
+                                                        {(() => {
+                                                            const actualQ1 = HAINES_ACTUAL_SPEND[selectedLocation].q1Total;
+                                                            const allocQ1 = locationData[selectedLocation] ? locationData[selectedLocation].allocations[0] + locationData[selectedLocation].allocations[1] + locationData[selectedLocation].allocations[2] : 0;
+                                                            const v = allocQ1 - actualQ1;
+                                                            return <span style={{ color: v >= 0 ? '#34C759' : '#FF3B30' }}>{v >= 0 ? '+' : '-'}${Math.round(Math.abs(v)).toLocaleString()}</span>;
+                                                        })()}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td style={{ fontWeight: 600 }}>ACTUAL vs PLANNED</td>
                                                     {MONTHS.map((_, idx) => {
-                                                        if (idx > 2) return <td key={idx} className="month-cell" style={{ color: '#D1D1D6' }}>---</td>;
+                                                        if (!hasActualData(selectedLocation, idx)) return <td key={idx} className="month-cell" style={{ color: '#D1D1D6' }}>---</td>;
                                                         const actual = HAINES_ACTUAL_SPEND[selectedLocation].totals[idx];
-                                                        const planned = items.reduce((sum, item) => sum + item.months[idx], 0);
-                                                        const diff = planned - actual;
+                                                        const locItems = locationData[selectedLocation] ? locationData[selectedLocation].items : [];
+                                                        const plannedVal = locItems.reduce((sum, item) => sum + item.months[idx], 0);
+                                                        const diff = plannedVal - actual;
                                                         return (
                                                             <td key={idx} className="month-cell" style={{ fontWeight: 600, color: diff >= 0 ? '#34C759' : '#FF3B30' }}>
                                                                 {diff >= 0 ? '+' : '-'}${Math.round(Math.abs(diff)).toLocaleString()}
@@ -1473,7 +1769,8 @@
                                                     <td className="month-cell" style={{ fontWeight: 600, background: '#FFF8F0' }}>
                                                         {(() => {
                                                             const actualQ1 = HAINES_ACTUAL_SPEND[selectedLocation].q1Total;
-                                                            const plannedQ1 = items.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0);
+                                                            const locItems = locationData[selectedLocation] ? locationData[selectedLocation].items : [];
+                                                            const plannedQ1 = locItems.reduce((sum, item) => sum + item.months[0] + item.months[1] + item.months[2], 0);
                                                             const diff = plannedQ1 - actualQ1;
                                                             return <span style={{ color: diff >= 0 ? '#34C759' : '#FF3B30' }}>{diff >= 0 ? '+' : '-'}${Math.round(Math.abs(diff)).toLocaleString()}</span>;
                                                         })()}
@@ -1483,14 +1780,14 @@
                                         </table>
                                     ) : (
                                         <div style={{ textAlign: 'center', padding: '48px', color: '#86868B' }}>
-                                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📊</div>
+                                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>--</div>
                                             <div style={{ fontSize: '15px', fontWeight: 500 }}>Select a specific brand to see vendor spend</div>
                                             <div style={{ fontSize: '13px', marginTop: '4px' }}>Choose LEVEL, TITAN, TRADEMARK, PAPPAS, or PRO above</div>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* All Brands Q1 Summary */}
+                                {/* All Brands Summary */}
                                 <div className="table-card">
                                     <div className="table-title" style={{ marginBottom: '20px' }}>All Brands - Q1 Actual vs Allocation Summary</div>
                                     <table>
@@ -1592,11 +1889,177 @@
                                 </div>
                             </div>
                         )}
+
+                        {/* ===== SPEND REQUEST TAB (NEW) ===== */}
+                        {activeTab === 'spend-request' && (
+                            <>
+                                <div style={{ marginBottom: '24px' }}>
+                                    <div className="table-title" style={{ marginBottom: '4px', color: '#FF3B30' }}>Spend Request Portal</div>
+                                    <div style={{ fontSize: '13px', color: '#8E8E93' }}>GMs: Submit requests BEFORE spending. All requests require VP Marketing approval.</div>
+                                </div>
+
+                                {/* Spend Request Form */}
+                                <div className="spend-request-form">
+                                    <div className="table-title" style={{ marginBottom: '16px' }}>New Spend Request</div>
+                                    <div className="spend-form-grid">
+                                        <div className="form-group">
+                                            <label className="form-label">Brand</label>
+                                            <select className="form-select" value={spendForm.brand} onChange={(e) => setSpendForm({ ...spendForm, brand: e.target.value })}>
+                                                {LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Vendor</label>
+                                            <input type="text" className="form-input" placeholder="e.g., Scorpion" value={spendForm.vendor} onChange={(e) => setSpendForm({ ...spendForm, vendor: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Amount</label>
+                                            <input type="number" className="form-input" placeholder="0.00" value={spendForm.amount} onChange={(e) => setSpendForm({ ...spendForm, amount: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Month</label>
+                                            <select className="form-select" value={spendForm.month} onChange={(e) => setSpendForm({ ...spendForm, month: e.target.value })}>
+                                                {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Category</label>
+                                            <select className="form-select" value={spendForm.category} onChange={(e) => setSpendForm({ ...spendForm, category: e.target.value })}>
+                                                {BUDGET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Media Type</label>
+                                            <select className="form-select" value={spendForm.mediaType} onChange={(e) => setSpendForm({ ...spendForm, mediaType: e.target.value })}>
+                                                {MEDIA_TYPES.map(m => <option key={m} value={m}>{m}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-group" style={{ marginTop: '8px' }}>
+                                        <label className="form-label">Description</label>
+                                        <input type="text" className="form-input" placeholder="What is this spend for?" value={spendForm.description} onChange={(e) => setSpendForm({ ...spendForm, description: e.target.value })} />
+                                    </div>
+
+                                    {/* Budget Impact Panel */}
+                                    {(() => {
+                                        const impact = getSpendImpact();
+                                        if (!impact) return null;
+                                        const borderClass = impact.status === 'red' ? 'red-border' : impact.status === 'yellow' ? 'yellow-border' : 'green-border';
+                                        return (
+                                            <div className={`budget-impact-panel ${borderClass}`} style={{ marginTop: '16px' }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Budget Impact - {impact.brand} / {MONTHS[impact.monthIdx]}</div>
+                                                <div className="impact-row">
+                                                    <span style={{ color: '#8E8E93' }}>Month Allocation</span>
+                                                    <span style={{ fontWeight: 600 }}>${impact.alloc.toLocaleString()}</span>
+                                                </div>
+                                                <div className="impact-row">
+                                                    <span style={{ color: '#8E8E93' }}>Current Planned Spend</span>
+                                                    <span style={{ fontWeight: 600 }}>${impact.plannedSpend.toLocaleString()}</span>
+                                                </div>
+                                                <div className="impact-row">
+                                                    <span style={{ color: '#8E8E93' }}>Current Actual Spend (Haines)</span>
+                                                    <span style={{ fontWeight: 600, color: '#FF9500' }}>${Math.round(impact.actualSpend).toLocaleString()}</span>
+                                                </div>
+                                                <div className="impact-row">
+                                                    <span style={{ color: '#8E8E93' }}>Remaining BEFORE this request</span>
+                                                    <span style={{ fontWeight: 600, color: impact.remainingBefore >= 0 ? '#34C759' : '#FF3B30' }}>${Math.round(impact.remainingBefore).toLocaleString()}</span>
+                                                </div>
+                                                <div className="impact-row" style={{ borderBottom: 'none' }}>
+                                                    <span style={{ color: '#8E8E93', fontWeight: 600 }}>Remaining AFTER this request</span>
+                                                    <span style={{ fontWeight: 700, fontSize: '16px', color: impact.remainingAfter >= 0 ? '#34C759' : '#FF3B30' }}>${Math.round(impact.remainingAfter).toLocaleString()}</span>
+                                                </div>
+                                                <div className="impact-message" style={{
+                                                    background: impact.status === 'red' ? '#FFECEC' : impact.status === 'yellow' ? '#FFF8E6' : '#E8F8ED',
+                                                    color: impact.status === 'red' ? '#FF3B30' : impact.status === 'yellow' ? '#FF9500' : '#34C759'
+                                                }}>
+                                                    {impact.remainingAfter >= 0
+                                                        ? `This request would keep ${impact.brand} $${Math.round(impact.remainingAfter).toLocaleString()} under budget for ${MONTHS[impact.monthIdx]}`
+                                                        : `This request would put ${impact.brand} $${Math.round(Math.abs(impact.remainingAfter)).toLocaleString()} over budget for ${MONTHS[impact.monthIdx]}`
+                                                    }
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    <button className="add-btn" style={{ background: '#FF3B30', marginTop: '12px', padding: '12px 24px' }} onClick={submitSpendRequest}>
+                                        Submit Spend Request
+                                    </button>
+                                </div>
+
+                                {/* Requests Queue */}
+                                <div className="table-card">
+                                    <div className="table-header">
+                                        <div className="table-title">Spend Requests Queue</div>
+                                        <div style={{ fontSize: '13px', color: '#8E8E93' }}>{spendRequests.length} requests</div>
+                                    </div>
+                                    {spendRequests.length === 0 ? (
+                                        <div style={{ textAlign: 'center', padding: '48px', color: '#86868B' }}>
+                                            <div style={{ fontSize: '15px', fontWeight: 500 }}>No spend requests yet</div>
+                                            <div style={{ fontSize: '13px', marginTop: '4px' }}>Use the form above to submit a new request.</div>
+                                        </div>
+                                    ) : (
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Brand</th>
+                                                    <th>Vendor</th>
+                                                    <th>Description</th>
+                                                    <th style={{ textAlign: 'right' }}>Amount</th>
+                                                    <th>Month</th>
+                                                    <th>Category</th>
+                                                    <th>Budget Impact</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {spendRequests.map(req => {
+                                                    const alloc = locationData[req.brand] ? locationData[req.brand].allocations[req.month] : 0;
+                                                    const plannedSpend = locationData[req.brand] ? locationData[req.brand].items.reduce((sum, item) => sum + item.months[req.month], 0) : 0;
+                                                    const actualSpend = HAINES_ACTUAL_SPEND[req.brand] ? HAINES_ACTUAL_SPEND[req.brand].totals[req.month] : 0;
+                                                    const afterRemaining = alloc - Math.max(plannedSpend, actualSpend) - req.amount;
+                                                    const statusColors = {
+                                                        'Pending': { bg: '#FFF8E6', color: '#FF9500' },
+                                                        'Approved': { bg: '#E8F8ED', color: '#34C759' },
+                                                        'Denied': { bg: '#FFECEC', color: '#FF3B30' }
+                                                    };
+                                                    const sc = statusColors[req.status] || statusColors['Pending'];
+                                                    return (
+                                                        <tr key={req.id}>
+                                                            <td style={{ fontSize: '12px', color: '#8E8E93' }}>{req.date}</td>
+                                                            <td style={{ fontWeight: 600 }}>{req.brand}</td>
+                                                            <td>{req.vendor}</td>
+                                                            <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.description}</td>
+                                                            <td style={{ textAlign: 'right', fontWeight: 600 }}>${req.amount.toLocaleString()}</td>
+                                                            <td>{MONTHS[req.month]}</td>
+                                                            <td style={{ fontSize: '12px' }}>{req.category}</td>
+                                                            <td style={{ fontWeight: 600, color: afterRemaining >= 0 ? '#34C759' : '#FF3B30', fontSize: '12px' }}>
+                                                                {afterRemaining >= 0 ? `$${Math.round(afterRemaining).toLocaleString()} left` : `$${Math.round(Math.abs(afterRemaining)).toLocaleString()} over`}
+                                                            </td>
+                                                            <td>
+                                                                <span
+                                                                    className="request-status-pill"
+                                                                    style={{ background: sc.bg, color: sc.color }}
+                                                                    onClick={() => cycleRequestStatus(req.id)}
+                                                                    title="Click to cycle status"
+                                                                >
+                                                                    {req.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
 
-                    {/* ═══════ EXPENSES TAB ═══════ */}
+                    {/* ===== EXPENSES TAB ===== */}
                     {activeTab === 'expenses' && (
-                        <div className="content-area">
+                        <div className="content-area" style={{ padding: '20px' }}>
                             {/* Expense KPI cards */}
                             <div className="kpi-row">
                                 <div className="kpi-card" style={{ borderLeft: '4px solid #34C759' }}>
@@ -1623,7 +2086,7 @@
                                         onClick={() => { const inp = document.createElement('input'); inp.type='file'; inp.accept='.csv'; inp.onchange = (e) => { if(e.target.files[0]) uploadExpenseCsv(e.target.files[0]); }; inp.click(); }}
                                         style={{ flex: 1, border: csvDragOver ? '2px dashed #007AFF' : '2px dashed #D2D2D7', borderRadius: '12px', padding: '32px', textAlign: 'center', cursor: 'pointer', background: csvDragOver ? '#F0F7FF' : '#FAFAFA', transition: 'all 0.2s' }}
                                     >
-                                        <div style={{ fontSize: '32px', marginBottom: '8px' }}>📄</div>
+                                        <div style={{ fontSize: '32px', marginBottom: '8px' }}>CSV</div>
                                         <div style={{ fontSize: '15px', fontWeight: 600, color: '#1D1D1F' }}>Drop CSV here or click to upload</div>
                                         <div style={{ fontSize: '12px', color: '#86868B', marginTop: '4px' }}>AI will auto-classify each expense to the right branch</div>
                                     </div>
@@ -1650,7 +2113,6 @@
                                 </div>
                                 {expenses.length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '48px', color: '#86868B' }}>
-                                        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🧾</div>
                                         <div style={{ fontSize: '15px', fontWeight: 500 }}>No expenses yet</div>
                                         <div style={{ fontSize: '13px', marginTop: '4px' }}>Upload a CSV or add expenses manually. AI will classify each one to the right branch.</div>
                                     </div>
@@ -1698,7 +2160,7 @@
                                                         </td>
                                                         <td style={{ textAlign: 'left', fontSize: '11px', color: '#86868B', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.reasoning}</td>
                                                         <td>
-                                                            <button onClick={() => deleteExpense(exp.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#FF3B30', opacity: 0.5 }} title="Delete">×</button>
+                                                            <button onClick={() => deleteExpense(exp.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#FF3B30', opacity: 0.5 }} title="Delete">x</button>
                                                         </td>
                                                     </tr>
                                                 ))}
